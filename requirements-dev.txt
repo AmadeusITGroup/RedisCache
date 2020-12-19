@@ -1,4 +1,5 @@
--r requirements.txt
+redis
+executiontime
 pip
 wheel
 pylint
@@ -6,3 +7,4 @@ pytest
 pdbpp
 coverage
 setuptools
+twine

@@ -103,7 +103,7 @@ Same as above but waits for the value if not in the cache.
 
 ### Virtual python environment
 
-My development environment is `Python 3.8.5`. The production depedencies are in `requirements.txt`. For the development environment, use `requirements-dev.txt`.
+My development environment is `Python 3.8.5`. The dependencies are in `requirements-dev.txt`.
 
 ### Testing
 
