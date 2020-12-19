@@ -1,0 +1,8 @@
+-r requirements.txt
+pip
+wheel
+pylint
+pytest
+pdbpp
+coverage
+setuptools

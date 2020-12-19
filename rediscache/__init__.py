@@ -1,0 +1,216 @@
+#!/usr/bin/env python
+'''
+ .+"+.+"+.+"+.+"+.
+(                 )
+ ) rediscache.py (
+(                 )
+ "+.+"+.+"+.+"+.+"
+
+rediscache is a function decorator that will cache its result in a Redis database.
+
+Parameters:
+- refresh: the number of seconds after which the cached data will be refreshed using the decorated function.
+- expire: the number of seconds after which the cached data will altogether disapear from the Redis database.
+- default: the value that will be returned if the data is not found in the cache. It cannot be None.
+It can be bytes, string, int or float.
+- enabled: This is True by default but enables to programmatically disable the cach if required.
+
+It also reads form the environment:
+- REDIS_SERVICE_HOST: the redis server host name or IP. Default is 'localhost'.
+- REDIS_SERVICE_PORT: the port that the redis server listen to. Default is 6379.
+
+Note:
+A key associated to the decorated function is created using the function name and its parameters. This is based
+on the value returned by the repr() function (ie: the __repr__() member) of each paramter. user defined objects
+will have this function return by default a string like this:
+"<amadeusbook.services.EmployeesService object at 0x7f41dedd7128>"
+This will not do as each instance of the object will have a different representation no matter what. The direct
+consequence will be that each key in the cache will be different, so values in cache will never be reused.
+So you need to make sure that your parameters return a meaningful representation value.
+
+TODO:
+- Create a python package for PyPi
+- Make it open source
+- Check what happens if redis database is getting full
+'''
+
+from functools import wraps
+from json import dumps, loads
+import logging
+import os
+import threading
+from time import sleep
+from types import FunctionType
+
+import redis
+from executiontime import printexecutiontime, YELLOW, RED
+
+PREFIX = "."
+
+
+class RedisCache:
+    """
+    Having the decorator provided by a class allows to have some context to improve performances.
+    """
+    # pylint: disable=too-many-arguments
+
+    def __init__(self, host: str = None, port: int = None, db: int = None, password: str = None, decode: bool = True, enabled: bool = True):
+        self.enabled = enabled
+        if self.enabled:
+            # If environment variables are set for redis server, they superseed the default values.
+            # But if provided at the construction, it has priority.
+            if not host:
+                host = os.environ.get('REDIS_SERVICE_HOST', 'localhost')
+            if not port:
+                port = os.environ.get('REDIS_SERVICE_PORT', 6379)
+            if not db:
+                db = os.environ.get('REDIS_SERVICE_DATABASE', 0)
+            if not password:
+                # If password is None, it is ignored.
+                password = os.environ.get('REDIS_SERVICE_PASSWORD')
+            self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
+
+    # pylint: disable=line-too-long
+    def cache(self, refresh: int, expire: int, retry: int = None, default: any = '', wait: bool = False, serializer: FunctionType = None, deserializer: FunctionType = None): # NOSONAR
+        '''
+        Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
+
+        Specific examples when to use this decorator:
+        - Raw storage of byte string that you do not want to be decoded: use the decode=False.
+        - JSON dumps data that doesn't need to be loaded before it is sent by a REST API: use serializer=dumps but no deserializer.
+        '''
+
+        logger = logging.getLogger(__name__)
+
+        def decorator(function):
+            '''
+            The decorator itself returns a wrapper function that will replace the original one.
+            '''
+
+            @printexecutiontime('[' + function.__name__ + ']Total execution time of Redis decorator: {0}', color=YELLOW, output=logger.info)
+            @wraps(function)
+            def wrapper(*args, **kwargs):
+                '''
+                This wrapper calculates and displays the execution time of the function.
+                '''
+
+                @printexecutiontime('[' + function.__name__ + ']Execution time of call to function and storage in Redis: {0}', color=RED, output=logger.info)
+                def refreshvalue(key):
+                    '''
+                    This gets the value provided by the function and stores it in local Redis database
+                    '''
+                    try:
+                        # Get some stats
+                        self.server.incr('Refresh')
+                        # Execute function to fetch value to cache
+                        new_value = function(*args, **kwargs)
+                        # Serialize the value if requested
+                        if serializer:
+                            new_value = serializer(new_value)
+                        # Store value in cache with expiration time
+                        self.server.set(key, new_value, ex=expire)
+                        # Set refresh key with refresh time
+                        self.server.set(PREFIX + key, 1, ex=refresh)
+                        return new_value
+                    # pylint: disable=broad-except
+                    # It is normal to catch all exception becase we do not know what function is decorated.
+                    except Exception as exception_in_thread:
+                        # Get some stats
+                        self.server.incr('Failed')
+                        # Remove refresh key so next time we try again to recalculate the value.
+                        # But keep the actual value if any.
+                        self.server.delete(PREFIX + key)
+                        # Log the error. It's not critical because maybe next time it will work.
+                        logger.error("Error in Thread execution to update the Redis cache on key %s\n%s", key, exception_in_thread)
+                        return None
+
+                def refreshvalueinthread(key):
+                    '''
+                    Run the refresh value in a separate thread
+                    '''
+                    thread = threading.Thread(target=refreshvalue, args=(key,))
+                    thread.start()
+
+                # If the cache is disabled, directly call the function
+                if not self.enabled:
+                    direct_value = function(*args, **kwargs)
+                    # If we have decided to serialize, we always do it to be consistent
+                    if serializer:
+                        direct_value = serializer(direct_value)
+                    if deserializer:
+                        direct_value = deserializer(direct_value)
+                    return direct_value
+
+                # Lets create a key from the function's name and its parameters values
+                key = function.__name__ + str(args) + str(kwargs)
+
+                # Get the value from the cache.
+                # If it is not there we will get None.
+                cached_value = self.server.get(key)
+
+                # Time to update stats counters
+                if cached_value is None:
+                    self.server.incr('Missed')
+                else:
+                    self.server.incr('Success')
+
+                # If the refresh key is gone, it is time to refresh the value.
+                if self.server.set(PREFIX + key, 1, ex=retry, nx=True):
+
+                    # If we found a value in the cash, we will not wait for the refresh
+                    if cached_value or not wait:
+                        # We just update the cache in another thread.
+                        refreshvalueinthread(key)
+                    else:
+                        # Here we will wait, let's count it
+                        self.server.incr('Wait')
+                        # We update the cash and return the value.
+                        cached_value = refreshvalue(key)
+
+                # We may still have decided to wait but another process is already getting the cache updated.
+                if cached_value is None and wait:
+                    # Here we will wait, let's count it
+                    self.server.incr('Wait')
+                    # Let's wait, but this is dangerous if we never get the value in the cache.
+                    # We will stop if we lose the refresh key indicating that the refreshing timed out.
+                    while cached_value is None and self.server.get(PREFIX + key):
+                        sleep(1)
+                        cached_value = self.server.get(key)
+
+                # If the cache was empty, we have None in the cached_value.
+                if cached_value is None:
+                    # We are going to return the default value
+                    self.server.incr('Default')
+                    cached_value = serializer(default) if serializer else default
+
+                # Return whatever value we have at this point.
+                return deserializer(cached_value) if deserializer else cached_value
+
+            # This allows bypassing the cache by accessing directly to the cached function
+            wrapper.function = function
+            return wrapper
+        return decorator
+
+    def cache_raw(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+        """
+        Normal caching of values directly storable in redis: byte string, string, int, float.
+        """
+        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
+
+    def cache_raw_wait(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+        """
+        Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
+        """
+        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
+
+    def cache_json(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+        """
+        JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
+        """
+        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, serializer=dumps, deserializer=loads)
+
+    def cache_json_wait(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+        """
+        Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
+        """
+        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True, serializer=dumps, deserializer=loads)

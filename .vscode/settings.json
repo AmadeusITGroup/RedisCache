@@ -1,0 +1,10 @@
+{
+    "files.watcherExclude": {
+        "**/venv/**": true
+    },
+    "files.trimTrailingWhitespace": true,
+    "python.testing.pytestEnabled": true,
+    "shellcheck.customArgs": [
+        "-x"
+    ]
+}
