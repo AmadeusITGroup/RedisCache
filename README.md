@@ -2,7 +2,7 @@
 
 ## Presentation
 
-There are already quite a few Python decorators to chache functions in a Redis database:
+There are already quite a few Python decorators to cache functions in a Redis database:
 - [redis-cache](https://pypi.org/project/redis-cache/)
 - [redis_cache_decorator](https://pypi.org/project/redis_cache_decorator/)
 - [redis-simple-cache](https://pypi.org/project/redis-simple-cache/)
@@ -11,9 +11,9 @@ There are already quite a few Python decorators to chache functions in a Redis d
 - [redis-simple-cache-py3](https://pypi.org/project/redis-simple-cache-py3/)
 - and more ...
 
-But none I could find allows to set two expiration times. The first one is how long before it is time to update the value stored in the cache. The second one, longer of course, is how long the data stored in the cache is still good enough to be sent back to the caller. Of course if the cached value is never accessed again, it will automatically be removed from the Redis database and never be refreshed.
+But none I could find allows to set two expiration times as we do it here. The first given time is how long before we should update the value stored in the cache. The second given time, longer of course, is how long the data stored in the cache is still good enough to be sent back to the caller. The refreshing of the cache is only done when the function is called. And by default it is done asynchronously, so the caller doesn't have to wait. When the data in the cache becomes too old, it disapear automatically.
 
-This applies to functions that will give a consistent output according to its parameters and at a given time. A purelly random function should not be cached. And a function that always gives the same result given a set of parameters should be cached with a different mechanism based on a FIFO queue, for example.
+This is a great caching mechanism for functions that will give a consistent output according to their parameters and at a given time. A purelly random function should not be cached. And a function that is independent of the time should be cached with a different mechanism like the LRU cache in the [functools](https://docs.python.org/3/library/functools.html) standard module.
 
 ## Installation
 
@@ -25,17 +25,17 @@ pip install rediscache
 
 ## Requirements
 
-Of course you need a Redis server installed. By default, the decorator will connect to `localhost:6379` with no password, using the database number `0`. This can be changed with parametrs given to the `RedisCache` object.
+Of course you need a Redis server installed. By default, the decorator will connect to `localhost:6379` with no password, using the database number `0`. This can be changed with parameters given to the `RedisCache` object.
 
 ## Usage of the RedisCache class
+
+### RedisCache class
 
 To avoid having too many connections to the Redis server, it is best to create only one instance of this class.
 
 ```python
 rediscache = RedisCache()
 ```
-
-### Constructor optional parameters:
 
 All the parameters for the `RedisCache` constructor are optional. Their default value are in `[]`.
 
@@ -46,7 +46,7 @@ All the parameters for the `RedisCache` constructor are optional. Their default 
 - decode: Decode the data stored in the cache as byte string. For example, it should not be done if you actually want to cache byte strings. [`True`]
 - enabled: When False it allows to programatically disable the cache. It can be usefull for unit tests. [`True`]
 
-### Environment variables:
+### Environment variables
 
 In the case of a cloud deployment, for example, it might be easier to use environment variables to set the Redis server details:
 
@@ -111,7 +111,7 @@ To make sure we use Redis properly, we do not mock it in the unit tess. So you w
 
 The execution of the tests including coverage result can be done with `test.sh`. You can also run just `pytest`. Or even the test file itself, but it will require setting the `PYTHONPATH`:
 
-```
+```bash
 export PYTHONPATH=.
 tests/test_rediscache.py
 ```
