@@ -29,8 +29,6 @@ consequence will be that each key in the cache will be different, so values in c
 So you need to make sure that your parameters return a meaningful representation value.
 
 TODO:
-- Create a python package for PyPi
-- Make it open source
 - Check what happens if redis database is getting full
 '''
 
@@ -46,7 +44,13 @@ import redis
 from executiontime import printexecutiontime, YELLOW, RED
 
 PREFIX = "."
-
+REFRESH = "Refresh" # Number of times the cached function was actually called.
+WAIT = "Wait" # Number of times we waited for the result when executing the function.
+FAILED = "Failed" # Number of times the cached function raised an exception when called.
+MISSED = "Missed" # Number of times the functions result was not found in the cache.
+SUCCESS = "Success" # Number of times the function's result was found in the cache.
+DEFAULT = "Default" # Number of times the default value was used because nothing is in the cache or the function failed.
+STATS = [REFRESH, WAIT, FAILED, MISSED, SUCCESS, DEFAULT]
 
 class RedisCache:
     """
@@ -101,28 +105,28 @@ class RedisCache:
                     '''
                     try:
                         # Get some stats
-                        self.server.incr('Refresh')
+                        self.server.incr(REFRESH)
                         # Execute function to fetch value to cache
                         new_value = function(*args, **kwargs)
-                        # Serialize the value if requested
-                        if serializer:
-                            new_value = serializer(new_value)
-                        # Store value in cache with expiration time
-                        self.server.set(key, new_value, ex=expire)
-                        # Set refresh key with refresh time
-                        self.server.set(PREFIX + key, 1, ex=refresh)
-                        return new_value
                     # pylint: disable=broad-except
-                    # It is normal to catch all exception becase we do not know what function is decorated.
+                    # It is normal to catch all exception because we do not know what function is decorated.
                     except Exception as exception_in_thread:
                         # Get some stats
-                        self.server.incr('Failed')
-                        # Remove refresh key so next time we try again to recalculate the value.
-                        # But keep the actual value if any.
-                        self.server.delete(PREFIX + key)
+                        self.server.incr(FAILED)
                         # Log the error. It's not critical because maybe next time it will work.
                         logger.error("Error in Thread execution to update the Redis cache on key %s\n%s", key, exception_in_thread)
-                        return None
+                        # Since we have no value, let's use the default
+                        self.server.incr(DEFAULT)
+                        new_value = default
+
+                    # Serialize the value if requested
+                    if serializer:
+                        new_value = serializer(new_value)
+                    # Store value in cache with expiration time
+                    self.server.set(key, new_value, ex=expire)
+                    # Set refresh key with refresh time
+                    self.server.set(PREFIX + key, 1, ex=refresh)
+                    return new_value
 
                 def refreshvalueinthread(key):
                     '''
@@ -150,9 +154,9 @@ class RedisCache:
 
                 # Time to update stats counters
                 if cached_value is None:
-                    self.server.incr('Missed')
+                    self.server.incr(MISSED)
                 else:
-                    self.server.incr('Success')
+                    self.server.incr(SUCCESS)
 
                 # If the refresh key is gone, it is time to refresh the value.
                 if self.server.set(PREFIX + key, 1, ex=retry, nx=True):
@@ -163,14 +167,14 @@ class RedisCache:
                         refreshvalueinthread(key)
                     else:
                         # Here we will wait, let's count it
-                        self.server.incr('Wait')
+                        self.server.incr(WAIT)
                         # We update the cash and return the value.
                         cached_value = refreshvalue(key)
 
                 # We may still have decided to wait but another process is already getting the cache updated.
                 if cached_value is None and wait:
                     # Here we will wait, let's count it
-                    self.server.incr('Wait')
+                    self.server.incr(WAIT)
                     # Let's wait, but this is dangerous if we never get the value in the cache.
                     # We will stop if we lose the refresh key indicating that the refreshing timed out.
                     while cached_value is None and self.server.get(PREFIX + key):
@@ -180,7 +184,7 @@ class RedisCache:
                 # If the cache was empty, we have None in the cached_value.
                 if cached_value is None:
                     # We are going to return the default value
-                    self.server.incr('Default')
+                    self.server.incr(DEFAULT)
                     cached_value = serializer(default) if serializer else default
 
                 # Return whatever value we have at this point.
@@ -214,3 +218,16 @@ class RedisCache:
         Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True, serializer=dumps, deserializer=loads)
+
+    def get_stats(self, delete=False):
+        """
+        Get the stats stored by RedisCache. See the list and definition at the top of this file.
+        If delete is set to True we delete the stats from Redis after read.
+        From Redis 6.2, it is possible to GETDEL, making sure that we do not lose some data between
+        the 'get' and the 'delete'. But it is not available in the Redis (v3.5.3) python interface yet.
+        """
+        stats = {stat: int(self.server.get(stat) or 0) for stat in STATS}
+        if delete:
+            for stat in STATS:
+                self.server.delete(stat)
+        return stats

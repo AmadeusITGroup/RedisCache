@@ -72,8 +72,9 @@ This is the main decorator. All the parameters are available. The mandatory ones
 Example:
 
 ```python
-rediscache = RedisCache()
-@rediscache.cache(10, 60) # Keep the value up to 1mn but ready to be refreshed every 10s.
+from rediscache import RedisCache
+REDISCACHE = RedisCache()
+@REDISCACHE.cache(10, 60) # Keep the value up to 1mn but ready to be refreshed every 10s.
 def my_function(...) {
     ...
 }
@@ -98,6 +99,32 @@ Serialize the value with `json.dumps()` and desiralize the value with `json.load
 ### `cache_json_wait` decorator helper
 
 Same as above but waits for the value if not in the cache.
+
+### `get_stats(delete=False)`
+
+This will get the stats stored when using the cache. The `delete` option is to reset the counters after read.
+The output is a dictionary with the following keys and values:
+* **Refresh**: Number of times the cached function was actually called.
+* **Wait**: Number of times we waited for the result when executing the function.
+* **Failed**: Number of times the cached function raised an exception when called.
+* **Missed**: Number of times the functions result was not found in the cache.
+* **Success**: Number of times the function's result was found in the cache.
+* **Default**: Number of times the default value was used because nothing is in the cache or the function failed.
+
+### The `function` property
+
+The decorator and its aliases add a new property to the decorated function to be able to bypass the cache as it may be required
+in some cases.
+
+```python
+from rediscache import RedisCache
+REDISCACHE = RedisCache()
+@REDISCACHE.cache(2, 10)
+def myfunc():
+    return "Hello"
+# Invoke the function without caching it.
+print(myfunc.function())
+```
 
 ## Development
 

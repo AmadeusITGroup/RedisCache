@@ -193,7 +193,7 @@ class TestRedisCache(TestCase):
         def my_very_slow_hello(name: str) -> str:
             # Count how many times the function was called
             self.server.incr('my_very_slow_hello')
-            sleep(5)
+            sleep(2)
             return f"Hello {name}!"
 
         # Stores the value in the cache
@@ -284,6 +284,54 @@ class TestRedisCache(TestCase):
             return f"Hello {name}!"
         self.assertEqual(my_cached_hello.__name__, "my_cached_hello")
         self.assertEqual(my_cached_hello.__doc__, "This is my documentation")
+
+    def test_get_stats(self):
+        # Wait for slow functions to be completed
+        sleep(1)
+        rediscache = RedisCache()
+        @rediscache.cache_raw_wait(1, 2)
+        def function1() -> str:
+            sleep(0.1)
+            return "Hello function 1"
+        @rediscache.cache(1, 2)
+        def function2() -> str:
+            sleep(0.1)
+            return "Hello function 2"
+        function1()
+        function2()
+        stats = rediscache.get_stats()
+        self.assertEqual(stats["Refresh"], 2)
+        self.assertEqual(stats["Wait"], 1)
+        self.assertEqual(stats["Failed"], 0)
+        self.assertEqual(stats["Missed"], 2)
+        self.assertEqual(stats["Success"], 0)
+        self.assertEqual(stats["Default"], 1)
+        function1()
+        function2()
+        stats = rediscache.get_stats()
+        self.assertEqual(stats["Refresh"], 2)
+        self.assertEqual(stats["Wait"], 1)
+        self.assertEqual(stats["Failed"], 0)
+        self.assertEqual(stats["Missed"], 3)
+        self.assertEqual(stats["Success"], 1)
+        self.assertEqual(stats["Default"], 2)
+        sleep(0.2)
+        function1()
+        function2()
+        stats = rediscache.get_stats(delete=True)
+        self.assertEqual(stats["Refresh"], 2)
+        self.assertEqual(stats["Wait"], 1)
+        self.assertEqual(stats["Failed"], 0)
+        self.assertEqual(stats["Missed"], 3)
+        self.assertEqual(stats["Success"], 3)
+        self.assertEqual(stats["Default"], 2)
+        stats = rediscache.get_stats()
+        self.assertEqual(stats["Refresh"], 0)
+        self.assertEqual(stats["Wait"], 0)
+        self.assertEqual(stats["Failed"], 0)
+        self.assertEqual(stats["Missed"], 0)
+        self.assertEqual(stats["Success"], 0)
+        self.assertEqual(stats["Default"], 0)
 
 if __name__ == "__main__":
     basicConfig(level=INFO)
