@@ -285,9 +285,8 @@ class TestRedisCache(TestCase):
         self.assertEqual(my_cached_hello.__name__, "my_cached_hello")
         self.assertEqual(my_cached_hello.__doc__, "This is my documentation")
 
-    def test_get_stats(self):
-        # Wait for slow functions to be completed
-        sleep(1)
+    # This test should run first, so it needs the be the first alphabatically.
+    def test_1_get_stats(self):
         rediscache = RedisCache()
         @rediscache.cache_raw_wait(1, 2)
         def function1() -> str:
