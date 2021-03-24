@@ -7,7 +7,7 @@ This allows to build the package, deploy it in PyPi and tag the source in GitHub
 > rm -rf dist
 > ./setup.py sdist
 > twine upload dist/*
-> git tag 0.1.1
+> git tag 0.1.2
 > git push origin --tags
 
 """
@@ -20,7 +20,7 @@ with open("README.md", "r") as readme:
 setup(
     name='rediscache',
     packages=find_packages(),
-    version='0.1.1',
+    version='0.1.2',
     description='Function decorator to cache results in Redis',
     long_description=README,
     long_description_content_type='text/markdown',

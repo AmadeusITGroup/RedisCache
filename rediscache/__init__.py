@@ -149,7 +149,10 @@ class RedisCache:
                 # Lets create a key from the function's name and its parameters values
                 values = ",".join([value.__str__() for value in args])
                 dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
-                all_args = ",".join([values, dict_values])
+                all_args = values
+                if values and dict_values:
+                    all_args += ","
+                all_args += dict_values
                 key = function.__name__ + "("+ all_args + ")"
 
                 # Get the value from the cache.

@@ -43,12 +43,16 @@ class TestRedisCache(TestCase):
         """
         rediscache = RedisCache()
         @rediscache.cache(10, 20, wait=True)
-        def func_with_args(arg, kwarg=''):
-            return "%s & %s" % (arg, kwarg)
-        value = func_with_args("toto", kwarg="titi")
+        def func_with_args(arg):
+            return arg
+        @rediscache.cache(10, 20, wait=True)
+        def func_with_args_kwargs(arg, kwarg=''):
+            return str(arg) + str(kwarg)
+        func_with_args("tata")
+        func_with_args_kwargs("toto", kwarg="titi")
         keys = self.server.keys("*")
-        self.assertEqual(value, "toto & titi")
-        self.assertIn("func_with_args(toto,kwarg='titi')", keys)
+        self.assertIn("func_with_args(tata)", keys)
+        self.assertIn("func_with_args_kwargs(toto,kwarg='titi')", keys)
 
     def test_normal_cache(self):
         rediscache = RedisCache()
