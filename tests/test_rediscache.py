@@ -36,6 +36,20 @@ class TestRedisCache(TestCase):
         retour = self.server.flushdb()
         info("Redis database flushed: %s", retour)
 
+    def test_key_in_redis(self):
+        """
+        This can be tested alone with:
+        pytest -k test_key_in_redis
+        """
+        rediscache = RedisCache()
+        @rediscache.cache(10, 20, wait=True)
+        def func_with_args(arg, kwarg=''):
+            return "%s & %s" % (arg, kwarg)
+        value = func_with_args("toto", kwarg="titi")
+        keys = self.server.keys("*")
+        self.assertEqual(value, "toto & titi")
+        self.assertIn("func_with_args(toto,kwarg='titi')", keys)
+
     def test_normal_cache(self):
         rediscache = RedisCache()
         @rediscache.cache_raw(1, 2)

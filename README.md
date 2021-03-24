@@ -63,7 +63,7 @@ This is the main decorator. All the parameters are available. The mandatory ones
 
 - refresh: The amount of seconds before it would be a good idea to refresh the cached value.
 - expire: How many seconds that the value in the cache is still considered good enough to be sent back to the caller.
-- retry: While a value is being refreshed, we want to avoid to refresh it in parallel. But if it is taking too long, after the number of seconds provided here, we may want to try our luck again. [`None`]
+- retry: While a value is being refreshed, we want to avoid to refresh it in parallel. But if it is taking too long, after the number of seconds provided here, we may want to try our luck again. If not specified, we will take the `refresh` value.
 - default: If we do not have the value in the cache and we do not want to wait, what shall we send back to the caller? It has to be serializable because it will also be stored in the cache. [`''`]
 - wait: If the value is not in the cache, do we wait for the return of the function? [`False`]
 - serializer: The only type of data that can be stored directly in the Redis database are `byte`, `str`, `int` and `float`. Any other will have to be serialized with the function provided here. [`None`]

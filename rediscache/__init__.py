@@ -45,12 +45,13 @@ from executiontime import printexecutiontime, YELLOW, RED
 
 PREFIX = "."
 REFRESH = "Refresh" # Number of times the cached function was actually called.
-WAIT = "Wait" # Number of times we waited for the result when executing the function.
+WAIT = "Wait" # Number of times that we executed the function in the current thread.
+SLEEP = "Sleep" # Number of time that we had to wait 1s for the data to be found in the cache.
 FAILED = "Failed" # Number of times the cached function raised an exception when called.
 MISSED = "Missed" # Number of times the functions result was not found in the cache.
 SUCCESS = "Success" # Number of times the function's result was found in the cache.
 DEFAULT = "Default" # Number of times the default value was used because nothing is in the cache or the function failed.
-STATS = [REFRESH, WAIT, FAILED, MISSED, SUCCESS, DEFAULT]
+STATS = [REFRESH, WAIT, SLEEP, FAILED, MISSED, SUCCESS, DEFAULT]
 
 class RedisCache:
     """
@@ -146,7 +147,10 @@ class RedisCache:
                     return direct_value
 
                 # Lets create a key from the function's name and its parameters values
-                key = function.__name__ + str(args) + str(kwargs)
+                values = ",".join([value.__str__() for value in args])
+                dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
+                all_args = ",".join([values, dict_values])
+                key = function.__name__ + "("+ all_args + ")"
 
                 # Get the value from the cache.
                 # If it is not there we will get None.
@@ -159,7 +163,7 @@ class RedisCache:
                     self.server.incr(SUCCESS)
 
                 # If the refresh key is gone, it is time to refresh the value.
-                if self.server.set(PREFIX + key, 1, ex=retry, nx=True):
+                if self.server.set(PREFIX + key, 1, ex=retry if retry else refresh, nx=True):
 
                     # If we found a value in the cash, we will not wait for the refresh
                     if cached_value or not wait:
@@ -173,11 +177,11 @@ class RedisCache:
 
                 # We may still have decided to wait but another process is already getting the cache updated.
                 if cached_value is None and wait:
-                    # Here we will wait, let's count it
-                    self.server.incr(WAIT)
                     # Let's wait, but this is dangerous if we never get the value in the cache.
                     # We will stop if we lose the refresh key indicating that the refreshing timed out.
                     while cached_value is None and self.server.get(PREFIX + key):
+                        # Let's count how many times we wait 1s
+                        self.server.incr(SLEEP)
                         sleep(1)
                         cached_value = self.server.get(key)
 
