@@ -14,6 +14,9 @@ Parameters:
 - default: the value that will be returned if the data is not found in the cache. It cannot be None.
 It can be bytes, string, int or float.
 - enabled: This is True by default but enables to programmatically disable the cach if required.
+- include_args: By default all args will be used for key generation. Otherwise only use selected args.
+- include_kwargs: Same as use_args parameter.
+
 
 It also reads form the environment:
 - REDIS_SERVICE_HOST: the redis server host name or IP. Default is 'localhost'.
@@ -76,7 +79,7 @@ class RedisCache:
             self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
 
     # pylint: disable=line-too-long
-    def cache(self, refresh: int, expire: int, retry: int = None, default: any = '', wait: bool = False, serializer: FunctionType = None, deserializer: FunctionType = None): # NOSONAR
+    def cache(self, refresh: int, expire: int, retry: int = None, default: any = '', wait: bool = False, serializer: FunctionType = None, deserializer: FunctionType = None, include_args: list = None, include_kwargs: list = None): # NOSONAR
         '''
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
 
@@ -147,8 +150,16 @@ class RedisCache:
                     return direct_value
 
                 # Lets create a key from the function's name and its parameters values
-                values = ",".join([value.__str__() for value in args])
-                dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
+                if use_args:
+                    values = ",".join([value.__str__() for value_id, value in enumerate(args) if value_id in include_args])
+                else:
+                    values = ",".join([value.__str__() for value in args])
+
+                if use_kwargs:
+                    dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items() if key in include_kwargs])
+                else:
+                    dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
+                 
                 all_args = values
                 if values and dict_values:
                     all_args += ","
