@@ -4,5 +4,11 @@
     },
     "files.trimTrailingWhitespace": true,
     "python.testing.pytestEnabled": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "black-formatter.args": [
+        "--line-length=160"
+    ]
 }

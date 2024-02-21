@@ -34,7 +34,12 @@ pdbpp = "^0.10.3"
 coverage = "^7.4.2"
 mypy = "^1.8.0"
 safety = "^3.0.1"
+black = "^24.2.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pylint.format]
+# Maximum number of characters on a single line.
+max-line-length = 160
