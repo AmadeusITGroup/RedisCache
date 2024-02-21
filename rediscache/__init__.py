@@ -15,9 +15,11 @@ Parameters:
 It can be bytes, string, int or float.
 - enabled: This is True by default but enables to programmatically disable the cach if required.
 
-It also reads form the environment:
+It also reads from the environment:
 - REDIS_SERVICE_HOST: the redis server host name or IP. Default is 'localhost'.
 - REDIS_SERVICE_PORT: the port that the redis server listen to. Default is 6379.
+- REDIS_SERVICE_DATABASE: the database number to use. Default is 0.
+- REDIS_SERVICE_PASSWORD: the password to use to connect to the redis server. Default is None.
 
 Note:
 A key associated to the decorated function is created using the function name and its parameters. This is based
