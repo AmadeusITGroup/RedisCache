@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "rediscache"
+version = "0.2.0"
+description = "Redis caching of functions evolving over time"
+authors = ["Pierre Cart-Grandjean <pcart-grandjean@amadeus.com>"]
+license = "MIT"
+readme = "README.md"
+keywords = ["redis", "performance", "cache"]
+maintainers = ["Amadeus IT Group <opensource@amadeus.com>"]
+repository = "https://github.com/AmadeusITGroup/RedisCache"
+# Classifiers: https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+redis = "^5.0.1"
+executiontime = "^0.3.1"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.0.3"
+pytest = "^8.0.1"
+pdbpp = "^0.10.3"
+coverage = "^7.4.2"
+mypy = "^1.8.0"
+safety = "^3.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
