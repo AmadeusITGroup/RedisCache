@@ -150,12 +150,12 @@ class RedisCache:
                     return direct_value
 
                 # Lets create a key from the function's name and its parameters values
-                if use_args:
+                if include_args:
                     values = ",".join([value.__str__() for value_id, value in enumerate(args) if value_id in include_args])
                 else:
                     values = ",".join([value.__str__() for value in args])
 
-                if use_kwargs:
+                if include_kwargs:
                     dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items() if key in include_kwargs])
                 else:
                     dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
