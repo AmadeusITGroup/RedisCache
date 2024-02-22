@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source venv/bin/activate
+poetry install
 
-coverage run --source=rediscache --module pytest "$@"
-coverage report --show-missing
+poetry run coverage run --source=rediscache --module pytest "$@"
+poetry run coverage report --show-missing

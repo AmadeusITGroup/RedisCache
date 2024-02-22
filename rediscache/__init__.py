@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
  .+"+.+"+.+"+.+"+.
 (                 )
  ) rediscache.py (
@@ -15,9 +15,11 @@ Parameters:
 It can be bytes, string, int or float.
 - enabled: This is True by default but enables to programmatically disable the cach if required.
 
-It also reads form the environment:
+It also reads from the environment:
 - REDIS_SERVICE_HOST: the redis server host name or IP. Default is 'localhost'.
 - REDIS_SERVICE_PORT: the port that the redis server listen to. Default is 6379.
+- REDIS_SERVICE_DATABASE: the database number to use. Default is 0.
+- REDIS_SERVICE_PASSWORD: the password to use to connect to the redis server. Default is None.
 
 Note:
 A key associated to the decorated function is created using the function name and its parameters. This is based
@@ -30,7 +32,7 @@ So you need to make sure that your parameters return a meaningful representation
 
 TODO:
 - Check what happens if redis database is getting full
-'''
+"""
 
 from functools import wraps
 from json import dumps, loads
@@ -38,72 +40,99 @@ import logging
 import os
 import threading
 from time import sleep
-from types import FunctionType
+from typing import Any, Callable, Dict, Optional
 
 import redis
 from executiontime import printexecutiontime, YELLOW, RED
 
 PREFIX = "."
-REFRESH = "Refresh" # Number of times the cached function was actually called.
-WAIT = "Wait" # Number of times that we executed the function in the current thread.
-SLEEP = "Sleep" # Number of time that we had to wait 1s for the data to be found in the cache.
-FAILED = "Failed" # Number of times the cached function raised an exception when called.
-MISSED = "Missed" # Number of times the functions result was not found in the cache.
-SUCCESS = "Success" # Number of times the function's result was found in the cache.
-DEFAULT = "Default" # Number of times the default value was used because nothing is in the cache or the function failed.
+REFRESH = "Refresh"  # Number of times the cached function was actually called.
+WAIT = "Wait"  # Number of times that we executed the function in the current thread.
+SLEEP = "Sleep"  # Number of time that we had to wait 1s for the data to be found in the cache.
+FAILED = "Failed"  # Number of times the cached function raised an exception when called.
+MISSED = "Missed"  # Number of times the functions result was not found in the cache.
+SUCCESS = "Success"  # Number of times the function's result was found in the cache.
+DEFAULT = "Default"  # Number of times the default value was used because nothing is in the cache or the function failed.
 STATS = [REFRESH, WAIT, SLEEP, FAILED, MISSED, SUCCESS, DEFAULT]
+
 
 class RedisCache:
     """
     Having the decorator provided by a class allows to have some context to improve performances.
     """
+
     # pylint: disable=too-many-arguments
 
-    def __init__(self, host: str = None, port: int = None, db: int = None, password: str = None, decode: bool = True, enabled: bool = True):
+    def __init__(
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        db: Optional[int] = None,
+        password: Optional[str] = None,
+        decode: bool = True,
+        enabled: bool = True,
+    ):
         self.enabled = enabled
         if self.enabled:
             # If environment variables are set for redis server, they superseed the default values.
             # But if provided at the construction, it has priority.
             if not host:
-                host = os.environ.get('REDIS_SERVICE_HOST', 'localhost')
+                host = os.environ.get("REDIS_SERVICE_HOST", "localhost")
             if not port:
-                port = os.environ.get('REDIS_SERVICE_PORT', 6379)
+                port = int(os.environ.get("REDIS_SERVICE_PORT", 6379))
             if not db:
-                db = os.environ.get('REDIS_SERVICE_DATABASE', 0)
+                db = int(os.environ.get("REDIS_SERVICE_DATABASE", 0))
             if not password:
                 # If password is None, it is ignored.
-                password = os.environ.get('REDIS_SERVICE_PASSWORD')
+                password = os.environ.get("REDIS_SERVICE_PASSWORD")
             self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
 
     # pylint: disable=line-too-long
-    def cache(self, refresh: int, expire: int, retry: int = None, default: any = '', wait: bool = False, serializer: FunctionType = None, deserializer: FunctionType = None): # NOSONAR
-        '''
+    def cache(
+        self,
+        refresh: int,
+        expire: int,
+        retry: Optional[int] = None,
+        default: Any = "",
+        wait: bool = False,
+        serializer: Optional[Callable[..., Any]] = None,
+        deserializer: Optional[Callable[..., Any]] = None,
+    ) -> Callable[..., Any]:  # NOSONAR
+        """
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
 
         Specific examples when to use this decorator:
         - Raw storage of byte string that you do not want to be decoded: use the decode=False.
         - JSON dumps data that doesn't need to be loaded before it is sent by a REST API: use serializer=dumps but no deserializer.
-        '''
+        """
 
         logger = logging.getLogger(__name__)
 
-        def decorator(function):
-            '''
+        def decorator(function: Callable[..., Any]) -> Callable[..., Any]:
+            """
             The decorator itself returns a wrapper function that will replace the original one.
-            '''
+            """
 
-            @printexecutiontime('[' + function.__name__ + ']Total execution time of Redis decorator: {0}', color=YELLOW, output=logger.info)
+            @printexecutiontime(
+                "[" + function.__name__ + "]Total execution time of Redis decorator: {0}",
+                color=YELLOW,
+                output=logger.info,
+            )
             @wraps(function)
             def wrapper(*args, **kwargs):
-                '''
+                """
                 This wrapper calculates and displays the execution time of the function.
-                '''
+                """
 
-                @printexecutiontime('[' + function.__name__ + ']Execution time of call to function and storage in Redis: {0}', color=RED, output=logger.info)
+                @printexecutiontime(
+                    "[" + function.__name__ + "]Execution time of call to function and storage in Redis: {0}",
+                    color=RED,
+                    output=logger.info,
+                )
                 def refreshvalue(key):
-                    '''
+                    """
                     This gets the value provided by the function and stores it in local Redis database
-                    '''
+                    """
                     try:
                         # Get some stats
                         self.server.incr(REFRESH)
@@ -115,7 +144,11 @@ class RedisCache:
                         # Get some stats
                         self.server.incr(FAILED)
                         # Log the error. It's not critical because maybe next time it will work.
-                        logger.error("Error in Thread execution to update the Redis cache on key %s\n%s", key, exception_in_thread)
+                        logger.error(
+                            "Error in Thread execution to update the Redis cache on key %s\n%s",
+                            key,
+                            exception_in_thread,
+                        )
                         # Since we have no value, let's use the default
                         self.server.incr(DEFAULT)
                         new_value = default
@@ -129,10 +162,10 @@ class RedisCache:
                     self.server.set(PREFIX + key, 1, ex=refresh)
                     return new_value
 
-                def refreshvalueinthread(key):
-                    '''
+                def refreshvalueinthread(key: str) -> None:
+                    """
                     Run the refresh value in a separate thread
-                    '''
+                    """
                     thread = threading.Thread(target=refreshvalue, args=(key,))
                     thread.start()
 
@@ -147,13 +180,13 @@ class RedisCache:
                     return direct_value
 
                 # Lets create a key from the function's name and its parameters values
-                values = ",".join([value.__str__() for value in args])
-                dict_values = ",".join([str(key) + "='" + value.__str__() + "'" for key, value in kwargs.items()])
+                values = ",".join([str(value) for value in args])
+                dict_values = ",".join([str(key) + "='" + str(value) + "'" for key, value in kwargs.items()])
                 all_args = values
                 if values and dict_values:
                     all_args += ","
                 all_args += dict_values
-                key = function.__name__ + "("+ all_args + ")"
+                key = function.__name__ + "(" + all_args + ")"
 
                 # Get the value from the cache.
                 # If it is not there we will get None.
@@ -200,33 +233,49 @@ class RedisCache:
             # This allows bypassing the cache by accessing directly to the cached function
             wrapper.function = function
             return wrapper
+
         return decorator
 
-    def cache_raw(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Normal caching of values directly storable in redis: byte string, string, int, float.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
 
-    def cache_raw_wait(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
 
-    def cache_json(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
         """
-        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, serializer=dumps, deserializer=loads)
+        return self.cache(
+            refresh=refresh,
+            expire=expire,
+            retry=retry,
+            default=default,
+            serializer=dumps,
+            deserializer=loads,
+        )
 
-    def cache_json_wait(self, refresh: int, expire: int, retry: int = None, default: any = ''):
+    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
         """
-        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True, serializer=dumps, deserializer=loads)
+        return self.cache(
+            refresh=refresh,
+            expire=expire,
+            retry=retry,
+            default=default,
+            wait=True,
+            serializer=dumps,
+            deserializer=loads,
+        )
 
-    def get_stats(self, delete=False):
+    def get_stats(self, delete: bool = False) -> Dict[str, int]:
         """
         Get the stats stored by RedisCache. See the list and definition at the top of this file.
         If delete is set to True we delete the stats from Redis after read.

@@ -3,6 +3,7 @@
 ## Presentation
 
 There are already quite a few Python decorators to cache functions in a Redis database:
+
 - [redis-cache](https://pypi.org/project/redis-cache/)
 - [redis_cache_decorator](https://pypi.org/project/redis_cache_decorator/)
 - [redis-simple-cache](https://pypi.org/project/redis-simple-cache/)
@@ -104,12 +105,13 @@ Same as above but waits for the value if not in the cache.
 
 This will get the stats stored when using the cache. The `delete` option is to reset the counters after read.
 The output is a dictionary with the following keys and values:
-* **Refresh**: Number of times the cached function was actually called.
-* **Wait**: Number of times we waited for the result when executing the function.
-* **Failed**: Number of times the cached function raised an exception when called.
-* **Missed**: Number of times the functions result was not found in the cache.
-* **Success**: Number of times the function's result was found in the cache.
-* **Default**: Number of times the default value was used because nothing is in the cache or the function failed.
+
+- **Refresh**: Number of times the cached function was actually called.
+- **Wait**: Number of times we waited for the result when executing the function.
+- **Failed**: Number of times the cached function raised an exception when called.
+- **Missed**: Number of times the functions result was not found in the cache.
+- **Success**: Number of times the function's result was found in the cache.
+- **Default**: Number of times the default value was used because nothing is in the cache or the function failed.
 
 ### The `function` property
 
@@ -128,17 +130,32 @@ print(myfunc.function())
 
 ## Development
 
-### Virtual python environment
+### Poetry
 
-My development environment is `Python 3.8.5`. The dependencies are in `requirements-dev.txt`.
+My development environment is handled by Poetry. I use `Python 3.11.7`.
 
 ### Testing
 
 To make sure we use Redis properly, we do not mock it in the unit tess. So you will need a localhost default instance of Redis server without a password. This means that the unit tests are more like integrtion tests.
 
-The execution of the tests including coverage result can be done with `test.sh`. You can also run just `pytest`. Or even the test file itself, but it will require setting the `PYTHONPATH`:
+The execution of the tests including coverage result can be done with `test.sh`. You can also run just `pytest`:
 
 ```bash
-export PYTHONPATH=.
-tests/test_rediscache.py
+./test.sh
 ```
+
+## CI/CD
+
+### Workflow
+
+We use the GitHub workflow to check each new commit. See `.github/workflows/python-package.yaml`.
+
+We get help from re-usable actions. Here is the [Marketplace](https://github.com/marketplace?type=actions).
+
+- [Checkout](https://github.com/marketplace/actions/checkout)
+- [Install Poery Action](https://github.com/marketplace/actions/install-poetry-action)
+- [Setup Python](https://github.com/marketplace/actions/setup-python)
+
+### Publish to PyPI
+
+For the moment the publish to PyPI is done manually with the `publish.sh` script. You will need a PyPI API token in `PYPI_API_TOKEN`, stored in a `secrets.sh`.
