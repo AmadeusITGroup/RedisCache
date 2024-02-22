@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 redis = "^5.0.1"
 executiontime = "^0.3.1"
 
