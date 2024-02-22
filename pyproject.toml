@@ -40,6 +40,9 @@ black = "^24.2.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.mypy]
+strict = true
+
 [tool.pylint.format]
 # Maximum number of characters on a single line.
 max-line-length = 160

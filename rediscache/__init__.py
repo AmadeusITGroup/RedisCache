@@ -40,7 +40,7 @@ import logging
 import os
 import threading
 from time import sleep
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 import redis
 from executiontime import printexecutiontime, YELLOW, RED
@@ -95,9 +95,9 @@ class RedisCache:
         retry: Optional[int] = None,
         default: Any = "",
         wait: bool = False,
-        serializer: Optional[Callable] = None,
-        deserializer: Optional[Callable] = None,
-    ):  # NOSONAR
+        serializer: Optional[Callable[..., Any]] = None,
+        deserializer: Optional[Callable[..., Any]] = None,
+    ) -> Callable[..., Any]:  # NOSONAR
         """
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
 
@@ -108,7 +108,7 @@ class RedisCache:
 
         logger = logging.getLogger(__name__)
 
-        def decorator(function):
+        def decorator(function: Callable[..., Any]) -> Callable[..., Any]:
             """
             The decorator itself returns a wrapper function that will replace the original one.
             """
@@ -162,7 +162,7 @@ class RedisCache:
                     self.server.set(PREFIX + key, 1, ex=refresh)
                     return new_value
 
-                def refreshvalueinthread(key):
+                def refreshvalueinthread(key: str) -> None:
                     """
                     Run the refresh value in a separate thread
                     """
@@ -236,19 +236,19 @@ class RedisCache:
 
         return decorator
 
-    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
+    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Normal caching of values directly storable in redis: byte string, string, int, float.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
 
-    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
+    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
 
-    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
+    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
         """
@@ -261,7 +261,7 @@ class RedisCache:
             deserializer=loads,
         )
 
-    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
+    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
         """
         Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
         """
@@ -275,7 +275,7 @@ class RedisCache:
             deserializer=loads,
         )
 
-    def get_stats(self, delete=False):
+    def get_stats(self, delete: bool = False) -> Dict[str, int]:
         """
         Get the stats stored by RedisCache. See the list and definition at the top of this file.
         If delete is set to True we delete the stats from Redis after read.
