@@ -40,7 +40,7 @@ import logging
 import os
 import threading
 from time import sleep
-from types import FunctionType
+from typing import Any, Callable, Optional
 
 import redis
 from executiontime import printexecutiontime, YELLOW, RED
@@ -65,10 +65,10 @@ class RedisCache:
 
     def __init__(
         self,
-        host: str = None,
-        port: int = None,
-        db: int = None,
-        password: str = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        db: Optional[int] = None,
+        password: Optional[str] = None,
         decode: bool = True,
         enabled: bool = True,
     ):
@@ -79,9 +79,9 @@ class RedisCache:
             if not host:
                 host = os.environ.get("REDIS_SERVICE_HOST", "localhost")
             if not port:
-                port = os.environ.get("REDIS_SERVICE_PORT", 6379)
+                port = int(os.environ.get("REDIS_SERVICE_PORT", 6379))
             if not db:
-                db = os.environ.get("REDIS_SERVICE_DATABASE", 0)
+                db = int(os.environ.get("REDIS_SERVICE_DATABASE", 0))
             if not password:
                 # If password is None, it is ignored.
                 password = os.environ.get("REDIS_SERVICE_PASSWORD")
@@ -92,11 +92,11 @@ class RedisCache:
         self,
         refresh: int,
         expire: int,
-        retry: int = None,
-        default: any = "",
+        retry: Optional[int] = None,
+        default: Any = "",
         wait: bool = False,
-        serializer: FunctionType = None,
-        deserializer: FunctionType = None,
+        serializer: Optional[Callable] = None,
+        deserializer: Optional[Callable] = None,
     ):  # NOSONAR
         """
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
@@ -236,19 +236,19 @@ class RedisCache:
 
         return decorator
 
-    def cache_raw(self, refresh: int, expire: int, retry: int = None, default: any = ""):
+    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
         """
         Normal caching of values directly storable in redis: byte string, string, int, float.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
 
-    def cache_raw_wait(self, refresh: int, expire: int, retry: int = None, default: any = ""):
+    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
         """
         Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
 
-    def cache_json(self, refresh: int, expire: int, retry: int = None, default: any = ""):
+    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
         """
         JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
         """
@@ -261,7 +261,7 @@ class RedisCache:
             deserializer=loads,
         )
 
-    def cache_json_wait(self, refresh: int, expire: int, retry: int = None, default: any = ""):
+    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = ""):
         """
         Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
         """
