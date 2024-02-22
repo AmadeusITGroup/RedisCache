@@ -144,22 +144,9 @@ The execution of the tests including coverage result can be done with `test.sh`.
 ./test.sh
 ```
 
-### Publish to PyPI
-
-You will need a PyPI API token in `PYPI_API_TOKEN`. Here is a typical sequence.
-
-```bash
-. secrets.sh
-poetry install
-poetry version patch
-poetry build
-poetry publish --username=__token__ --password=${PYPI_API_TOKEN}
-version=$(poetry version --short)
-git tag ${version}
-git push origin --tags
-```
-
 ## CI/CD
+
+### Workflow
 
 We use the GitHub workflow to check each new commit. See `.github/workflows/python-package.yaml`.
 
@@ -168,3 +155,7 @@ We get help from re-usable actions. Here is the [Marketplace](https://github.com
 - [Checkout](https://github.com/marketplace/actions/checkout)
 - [Install Poery Action](https://github.com/marketplace/actions/install-poetry-action)
 - [Setup Python](https://github.com/marketplace/actions/setup-python)
+
+### Publish to PyPI
+
+For the moment the publish to PyPI is done manually with the `publish.sh` script. You will need a PyPI API token in `PYPI_API_TOKEN`, stored in a `secrets.sh`.
