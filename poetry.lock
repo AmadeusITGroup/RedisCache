@@ -453,13 +453,13 @@ poetry = ["poetry"]
 
 [[package]]
 name = "executiontime"
-version = "0.3.3"
+version = "0.3.4"
 description = "A simple function decorator to display its execution time on the console or in the logs."
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "executiontime-0.3.3-py3-none-any.whl", hash = "sha256:260e0ec6638b21c7a66972dd2b65aecff30c01e5f84d0a8adec7773d58fc68d4"},
-    {file = "executiontime-0.3.3.tar.gz", hash = "sha256:c13df776f2f02edce2b3638f128208b0727cea19eea3dbb89b57043da65490b7"},
+    {file = "executiontime-0.3.4-py3-none-any.whl", hash = "sha256:3f1defcb8a140840bc15f7305bd20697a9a58d0357780fafa76c4f21775e216d"},
+    {file = "executiontime-0.3.4.tar.gz", hash = "sha256:5e60593586dd470bd735bedddae11a3e174febe83bcd0ee7efad13ea8db8b0a1"},
 ]
 
 [package.dependencies]
