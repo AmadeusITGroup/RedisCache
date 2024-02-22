@@ -158,3 +158,13 @@ version=$(poetry version --short)
 git tag ${version}
 git push origin --tags
 ```
+
+## CI/CD
+
+We use the GitHub workflow to check each new commit. See `.github/workflows/python-package.yaml`.
+
+We get help from re-usable actions. Here is the [Marketplace](https://github.com/marketplace?type=actions).
+
+- [Checkout](https://github.com/marketplace/actions/checkout)
+- [Install Poery Action](https://github.com/marketplace/actions/install-poetry-action)
+- [Setup Python](https://github.com/marketplace/actions/setup-python)
