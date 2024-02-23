@@ -69,6 +69,8 @@ This is the main decorator. All the parameters are available. The mandatory ones
 - wait: If the value is not in the cache, do we wait for the return of the function? [`False`]
 - serializer: The only type of data that can be stored directly in the Redis database are `byte`, `str`, `int` and `float`. Any other will have to be serialized with the function provided here. [`None`]
 - deserializer: If the value was serialized to be stored in the cache, it needs to deserialized when it is retrieved. [`None`]
+- use_args: This is the list of positional parameters (a list of integers) to be taken into account to generate the key that will be used in Redis. If `None`, they will all be used. [`None`]
+- use_kwargs: This is the list of named paramters (a list of names) to be taken into account to generate the key that will be used in Redis. If `None`, they will all be used. [`None`]
 
 Example:
 
