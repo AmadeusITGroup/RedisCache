@@ -145,22 +145,22 @@ class RedisCache:
             The decorator itself returns a wrapper function that will replace the original one.
             """
 
-            # @printexecutiontime(
-            #     "[" + function.__name__ + "]Total execution time of Redis decorator: {0}",
-            #     color=YELLOW,
-            #     output=logger.info,
-            # )
+            @printexecutiontime(
+                "[" + function.__name__ + "] Total execution time of Redis decorator: {0}",
+                color=YELLOW,
+                output=logger.info,
+            )
             @wraps(function)
             def wrapper(*args: tuple[Any, ...], **kwargs: Dict[str, Any]) -> Any:
                 """
                 This wrapper calculates and displays the execution time of the function.
                 """
 
-                # @printexecutiontime(
-                #     "[" + function.__name__ + "]Execution time of call to function and storage in Redis: {0}",
-                #     color=RED,
-                #     output=logger.info,
-                # )
+                @printexecutiontime(
+                    "[" + function.__name__ + "] Execution time of call to function and storage in Redis: {0}",
+                    color=RED,
+                    output=logger.info,
+                )
                 def refreshvalue(key: str) -> Any:
                     """
                     This gets the value provided by the function and stores it in local Redis database
