@@ -40,7 +40,7 @@ import logging
 import os
 import threading
 from time import sleep
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import redis
 from executiontime import printexecutiontime, YELLOW, RED
@@ -87,6 +87,36 @@ class RedisCache:
                 password = os.environ.get("REDIS_SERVICE_PASSWORD")
             self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
 
+    def _create_key(
+        self,
+        name: str,
+        args: Optional[tuple[Any, ...]] = None,
+        use_args: Optional[List[int]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
+        use_kwargs: Optional[List[str]] = None,
+    ) -> str:
+        """
+        Create a key from the function's name and its parameters values
+        """
+        values = []
+        if args:
+            if use_args:
+                for position, value in enumerate(args):
+                    if position in use_args:
+                        values.append(f"'{value}'")
+            else:
+                values.extend(f"'{value}'" for value in args)
+
+        if kwargs:
+            if use_kwargs:
+                for key, value in kwargs.items():
+                    if key in use_kwargs:
+                        values.append(f"'{value}'")
+            else:
+                values.extend(f"'{value}'" for value in kwargs.values())
+
+        return f"{name}({','.join(values)})"
+
     # pylint: disable=line-too-long
     def cache(
         self,
@@ -97,7 +127,9 @@ class RedisCache:
         wait: bool = False,
         serializer: Optional[Callable[..., Any]] = None,
         deserializer: Optional[Callable[..., Any]] = None,
-    ) -> Callable[..., Any]:  # NOSONAR
+        use_args: Optional[List[int]] = None,
+        use_kwargs: Optional[List[str]] = None,
+    ) -> Callable[..., Any]:
         """
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
 
@@ -113,23 +145,23 @@ class RedisCache:
             The decorator itself returns a wrapper function that will replace the original one.
             """
 
-            @printexecutiontime(
-                "[" + function.__name__ + "]Total execution time of Redis decorator: {0}",
-                color=YELLOW,
-                output=logger.info,
-            )
+            # @printexecutiontime(
+            #     "[" + function.__name__ + "]Total execution time of Redis decorator: {0}",
+            #     color=YELLOW,
+            #     output=logger.info,
+            # )
             @wraps(function)
-            def wrapper(*args, **kwargs):
+            def wrapper(*args: tuple[Any, ...], **kwargs: Dict[str, Any]) -> Any:
                 """
                 This wrapper calculates and displays the execution time of the function.
                 """
 
-                @printexecutiontime(
-                    "[" + function.__name__ + "]Execution time of call to function and storage in Redis: {0}",
-                    color=RED,
-                    output=logger.info,
-                )
-                def refreshvalue(key):
+                # @printexecutiontime(
+                #     "[" + function.__name__ + "]Execution time of call to function and storage in Redis: {0}",
+                #     color=RED,
+                #     output=logger.info,
+                # )
+                def refreshvalue(key: str) -> Any:
                     """
                     This gets the value provided by the function and stores it in local Redis database
                     """
@@ -180,13 +212,13 @@ class RedisCache:
                     return direct_value
 
                 # Lets create a key from the function's name and its parameters values
+                key = self._create_key(name=function.__name__, args=args, use_args=use_args, kwargs=kwargs, use_kwargs=use_kwargs)
                 values = ",".join([str(value) for value in args])
                 dict_values = ",".join([str(key) + "='" + str(value) + "'" for key, value in kwargs.items()])
                 all_args = values
                 if values and dict_values:
                     all_args += ","
                 all_args += dict_values
-                key = function.__name__ + "(" + all_args + ")"
 
                 # Get the value from the cache.
                 # If it is not there we will get None.
@@ -230,8 +262,6 @@ class RedisCache:
                 # Return whatever value we have at this point.
                 return deserializer(cached_value) if deserializer else cached_value
 
-            # This allows bypassing the cache by accessing directly to the cached function
-            wrapper.function = function
             return wrapper
 
         return decorator
@@ -275,14 +305,14 @@ class RedisCache:
             deserializer=loads,
         )
 
-    def get_stats(self, delete: bool = False) -> Dict[str, int]:
+    def get_stats(self, delete: bool = False) -> Dict[str, Any]:
         """
         Get the stats stored by RedisCache. See the list and definition at the top of this file.
         If delete is set to True we delete the stats from Redis after read.
         From Redis 6.2, it is possible to GETDEL, making sure that we do not lose some data between
         the 'get' and the 'delete'. But it is not available in the Redis (v3.5.3) python interface yet.
         """
-        stats = {stat: int(self.server.get(stat) or 0) for stat in STATS}
+        stats = {stat: self.server.get(stat) for stat in STATS}
         if delete:
             for stat in STATS:
                 self.server.delete(stat)
