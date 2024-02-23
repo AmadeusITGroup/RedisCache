@@ -40,7 +40,7 @@ import logging
 import os
 import threading
 from time import sleep
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, ParamSpec, TypeVar
 
 import redis
 from executiontime import printexecutiontime, YELLOW, RED
@@ -54,6 +54,9 @@ MISSED = "Missed"  # Number of times the functions result was not found in the c
 SUCCESS = "Success"  # Number of times the function's result was found in the cache.
 DEFAULT = "Default"  # Number of times the default value was used because nothing is in the cache or the function failed.
 STATS = [REFRESH, WAIT, SLEEP, FAILED, MISSED, SUCCESS, DEFAULT]
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class RedisCache:
@@ -129,7 +132,7 @@ class RedisCache:
         deserializer: Optional[Callable[..., Any]] = None,
         use_args: Optional[List[int]] = None,
         use_kwargs: Optional[List[str]] = None,
-    ) -> Callable[..., Any]:
+    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
 
@@ -140,7 +143,7 @@ class RedisCache:
 
         logger = logging.getLogger(__name__)
 
-        def decorator(function: Callable[..., Any]) -> Callable[..., Any]:
+        def decorator(function: Callable[P, T]) -> Callable[P, T]:
             """
             The decorator itself returns a wrapper function that will replace the original one.
             """
@@ -151,7 +154,7 @@ class RedisCache:
                 output=logger.info,
             )
             @wraps(function)
-            def wrapper(*args: tuple[Any, ...], **kwargs: Dict[str, Any]) -> Any:
+            def wrapper(*args: tuple[Any, ...], **kwargs: Dict[str, Any]) -> T:
                 """
                 This wrapper calculates and displays the execution time of the function.
                 """
@@ -266,19 +269,19 @@ class RedisCache:
 
         return decorator
 
-    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
+    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         Normal caching of values directly storable in redis: byte string, string, int, float.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
 
-    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
+    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
         """
         return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
 
-    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
+    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
         """
@@ -291,7 +294,7 @@ class RedisCache:
             deserializer=loads,
         )
 
-    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Any:
+    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
         """

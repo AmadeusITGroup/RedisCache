@@ -52,3 +52,5 @@ jobs:
         run: |
           poetry run coverage run --source=rediscache --module pytest
           poetry run coverage report --show-missing
+      - name: Check types with mypy
+        run: poetry run mypy rediscache tests
