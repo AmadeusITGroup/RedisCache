@@ -44,5 +44,5 @@ else
 fi
 
 # Now we tag the repository
-git tag "v${local_version}"
+git tag "${local_version}"
 git push --tags
