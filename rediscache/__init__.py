@@ -154,7 +154,7 @@ class RedisCache:
                 output=logger.info,
             )
             @wraps(function)
-            def wrapper(*args: tuple[Any, ...], **kwargs: Dict[str, Any]) -> T:
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 """
                 This wrapper calculates and displays the execution time of the function.
                 """
@@ -164,7 +164,7 @@ class RedisCache:
                     color=RED,
                     output=logger.info,
                 )
-                def refreshvalue(key: str) -> Any:
+                def refreshvalue(key: str) -> T:
                     """
                     This gets the value provided by the function and stores it in local Redis database
                     """
@@ -192,7 +192,7 @@ class RedisCache:
                     if serializer:
                         new_value = serializer(new_value)
                     # Store value in cache with expiration time
-                    self.server.set(key, new_value, ex=expire)
+                    self.server.set(key, new_value, ex=expire)  # type: ignore
                     # Set refresh key with refresh time
                     self.server.set(PREFIX + key, 1, ex=refresh)
                     return new_value
@@ -263,7 +263,7 @@ class RedisCache:
                     cached_value = serializer(default) if serializer else default
 
                 # Return whatever value we have at this point.
-                return deserializer(cached_value) if deserializer else cached_value
+                return deserializer(cached_value) if deserializer else cached_value  # type: ignore
 
             return wrapper
 
