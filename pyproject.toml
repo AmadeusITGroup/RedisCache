@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rediscache"
-version = "0.2.0"
+version = "0.3.0"
 description = "Redis caching of functions evolving over time"
 authors = ["Pierre Cart-Grandjean <pcart-grandjean@amadeus.com>"]
 license = "MIT"
@@ -25,7 +25,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 redis = "^5.0.1"
-executiontime = "^0.3.1"
+executiontime = "^0.3.6"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.0.3"
