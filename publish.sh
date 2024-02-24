@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Check if we are on the master branch
+# Check if we are on the main branch
 branch=$(git branch --show-current)
-if [[ $branch != "master" ]]; then
-    echo "You need to be on the master branch to publish"
+if [[ $branch != "main" ]]; then
+    echo "You need to be on the main branch to publish"
     exit 1
 fi
 # Check of everything is committed
@@ -14,13 +14,13 @@ if [[ -n $status ]]; then
 fi
 # Check if everything is pushed
 status=$(git status -sb)
-if [[ $status != "## master...origin/master" ]]; then
+if [[ $status != "## main...origin/main" ]]; then
     echo "You need to push everything before publishing"
     exit 1
 fi
 
 # If the current version is the latest one available on PyPI, we need to bump it
-pypi_version=$(poetry search rediscache | grep -oP "rediscache\s+\(\K[0-9]+\.[0-9]+\.[0-9]+")
+pypi_version=$(poetry search rediscache | grep -oP "^rediscache\s+\(\K[0-9]+\.[0-9]+\.[0-9]+")
 local_version=$(poetry version --short)
 if [[ $pypi_version == $local_version ]]; then
     poetry version patch
