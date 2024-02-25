@@ -64,8 +64,6 @@ class RedisCache:
     Having the decorator provided by a class allows to have some context to improve performances.
     """
 
-    # pylint: disable=too-many-arguments
-
     def __init__(
         self,
         host: Optional[str] = None,
@@ -120,7 +118,6 @@ class RedisCache:
 
         return f"{name}({','.join(values)})"
 
-    # pylint: disable=line-too-long
     def cache(
         self,
         refresh: int,
