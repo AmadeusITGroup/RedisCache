@@ -159,7 +159,6 @@ class RedisCache:
                     """
                     This gets the value provided by the function and stores it in local Redis database
                     """
-                    new_value: Optional[T]
                     try:
                         # Get some stats
                         self.server.incr(REFRESH)
