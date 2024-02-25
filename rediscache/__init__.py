@@ -265,6 +265,9 @@ class RedisCache:
                 # Return whatever value we have at this point.
                 return deserializer(cached_value) if deserializer else cached_value  # type: ignore
 
+            # If we want to bypass the cache at runtime, we need a reference to the decorated function
+            wrapper.function = function  # type: ignore
+
             return wrapper
 
         return decorator

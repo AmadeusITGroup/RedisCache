@@ -429,6 +429,30 @@ def test_decorator() -> None:
     assert my_cached_hello.__doc__ == "This is my documentation"
 
 
+def test_bypass() -> None:
+    """
+    In some cases, we may need to call the function without caching it.
+    This can be tested alone with:
+    pytest -k test_bypass
+    """
+    rediscache = RedisCache()
+
+    @rediscache.cache(1, 2)
+    def utcnow() -> float:
+        return datetime.utcnow().timestamp()
+
+    # Call the function, fill in the cache
+    utcnow()
+    sleep(0.1)
+    # Get value from the cache
+    now = utcnow()
+    sleep(0.1)
+    # Value is still in the cache
+    assert utcnow() == now
+    # Force getting a new value
+    assert utcnow.function() != now  # type: ignore
+
+
 # This test should run first, so it needs the be the first alphabatically.
 def test_get_stats() -> None:
     """
