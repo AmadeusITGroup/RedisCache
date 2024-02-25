@@ -16,6 +16,7 @@ coverage run --source=rediscache --module pytest
 coverage report --show-missing
 """
 from datetime import datetime
+from json import dumps, loads
 from threading import Thread
 from time import sleep
 from typing import Callable, Dict, Generator, TypeVar
@@ -24,6 +25,7 @@ import pytest
 from redis import Redis, StrictRedis
 
 from rediscache import RedisCache
+from rediscache.tools import decorate
 
 T = TypeVar("T")
 
@@ -68,11 +70,11 @@ def test_key_in_redis(flushdb: Callable[[], Generator[StrictRedis, None, None]])
     server = flushdb
     rediscache = RedisCache()
 
-    @rediscache.cache(10, 20, wait=True)
+    @rediscache.cache(10, 20, default="", wait=True)
     def func_with_args(arg: str) -> str:
         return arg
 
-    @rediscache.cache(10, 20, wait=True)
+    @rediscache.cache(10, 20, default="", wait=True)
     def func_with_args_kwargs(arg: str, kwarg: str = "") -> str:
         return str(arg) + str(kwarg)
 
@@ -91,7 +93,7 @@ def test_normal_cache(flushdb: Callable[[], Generator[StrictRedis, None, None]])
     server = flushdb
     rediscache = RedisCache()
 
-    @rediscache.cache_raw(1, 2)
+    @rediscache.cache(1, 2, default="")
     def my_slow_hello(name: str) -> str:
         server.incr("my_slow_hello")  # type: ignore
         sleep(0.3)
@@ -122,7 +124,7 @@ def test_refresh() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_raw(1, 2)
+    @rediscache.cache(1, 2, default="")
     def my_slow_hello(name: str) -> str:
         """
         A slow function to test the Redis cache.
@@ -159,7 +161,7 @@ def test_default() -> None:
     rediscache = RedisCache()
     default = "Default"
 
-    @rediscache.cache_raw(1, 2, default=default)
+    @rediscache.cache(1, 2, default=default)
     def my_fast_hello(name: str) -> str:
         return f"Hello {name}!"
 
@@ -177,7 +179,7 @@ def test_fail() -> None:
     rediscache = RedisCache()
     default = "Default"
 
-    @rediscache.cache_raw(1, 2, default=default)
+    @rediscache.cache(1, 2, default=default)
     def my_failing_hello(name: str) -> str:
         if not name:
             raise ValueError("Invalid name")
@@ -203,7 +205,7 @@ def test_expire() -> None:
     rediscache = RedisCache()
     default = "Default"
 
-    @rediscache.cache_raw(1, 2, default=default)
+    @rediscache.cache(1, 2, default=default)
     def my_fast_hello(name: str) -> str:
         return f"Hello {name}!"
 
@@ -227,7 +229,7 @@ def test_empty() -> None:
     rediscache = RedisCache()
     default = "Default"
 
-    @rediscache.cache_raw(1, 2, default=default)
+    @rediscache.cache(1, 2, default=default)
     def my_empty_hello(name: str) -> str:
         if name:
             return f"Hello {name}!"
@@ -252,26 +254,7 @@ def test_no_cache() -> None:
     """
     rediscache = RedisCache(enabled=False)
 
-    @rediscache.cache_raw(1, 2)
-    def my_slow_hello(name: str) -> str:
-        sleep(0.5)
-        return f"Hello {name}!"
-
-    # Get the value directly, no cache
-    name = "choux"
-    hello = my_slow_hello(name)
-    # We have the value after the first call
-    assert hello == f"Hello {name}!"
-
-
-def test_no_cache_dumps() -> None:
-    """
-    This can be tested alone with:
-    pytest -k test_no_cache_dumps
-    """
-    rediscache = RedisCache(enabled=False)
-
-    @rediscache.cache_json(1, 2)
+    @rediscache.cache(1, 2, default="")
     def my_slow_hello(name: str) -> str:
         sleep(0.5)
         return f"Hello {name}!"
@@ -291,7 +274,7 @@ def test_very_long(flushdb: Callable[[], Generator[StrictRedis, None, None]]) ->
     server = flushdb
     rediscache = RedisCache()
 
-    @rediscache.cache_raw(1, 10, retry=1)
+    @rediscache.cache(1, 10, default="", retry=1)
     def my_very_slow_hello(name: str) -> str:
         # Count how many times the function was called
         server.incr("my_very_slow_hello")  # type: ignore
@@ -313,12 +296,15 @@ def test_very_long(flushdb: Callable[[], Generator[StrictRedis, None, None]]) ->
 
 def test_dict() -> None:
     """
+    Cache a function returning a dictionary.
     This can be tested alone with:
     pytest -k test_dict
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_json(1, 2)
+    @decorate(loads)
+    @rediscache.cache(1, 2, default="{}")
+    @decorate(dumps)
     def return_dict(name: str) -> Dict[str, str]:
         return {"hello": name}
 
@@ -333,12 +319,15 @@ def test_dict() -> None:
 
 def test_dict_wait() -> None:
     """
+    Cache and wait a function returning a dictionary.
     This can be tested alone with:
     pytest -k test_dict_wait
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_json_wait(1, 2)
+    @decorate(loads)
+    @rediscache.cache(1, 2, default="{}", wait=True)
+    @decorate(dumps)
     def return_dict(name: str) -> Dict[str, str]:
         sleep(0.1)
         return {"hello": name}
@@ -355,7 +344,7 @@ def test_wait() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_raw_wait(1, 2)
+    @rediscache.cache(1, 2, default="", wait=True)
     def my_hello_wait(name: str) -> str:
         sleep(0.5)
         return f"hello {name}!"
@@ -373,7 +362,7 @@ def test_wait_thread() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_raw_wait(1, 2)
+    @rediscache.cache(1, 2, default="", wait=True)
     def my_hello_wait(name: str) -> str:
         sleep(0.5)
         return f"hello {name}!"
@@ -397,7 +386,7 @@ def test_no_decode() -> None:
     my_byte_string = b"This is a byte string"
     rediscache = RedisCache(decode=False)
 
-    @rediscache.cache_raw_wait(1, 2)
+    @rediscache.cache(1, 2, default=b"", wait=True)
     def my_bytes() -> bytes:
         sleep(0.1)
         return my_byte_string
@@ -419,7 +408,7 @@ def test_decorator() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache(1, 2)
+    @rediscache.cache(1, 2, default="")
     def my_cached_hello(name: str) -> str:
         """This is my documentation"""
         sleep(0.1)
@@ -437,7 +426,8 @@ def test_bypass() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache(1, 2)
+    @rediscache.cache(1, 2, default="0.0")
+    @decorate(str)
     def utcnow() -> float:
         return datetime.utcnow().timestamp()
 
@@ -446,11 +436,14 @@ def test_bypass() -> None:
     sleep(0.1)
     # Get value from the cache
     now = utcnow()
+    assert isinstance(now, str)
     sleep(0.1)
     # Value is still in the cache
     assert utcnow() == now
     # Force getting a new value
-    assert utcnow.function() != now  # type: ignore
+    new_now = utcnow.function()  # type: ignore
+    assert isinstance(new_now, str)
+    assert new_now != now
 
 
 # This test should run first, so it needs the be the first alphabetically.
@@ -461,12 +454,12 @@ def test_get_stats() -> None:
     """
     rediscache = RedisCache()
 
-    @rediscache.cache_raw_wait(1, 2)
+    @rediscache.cache(1, 2, default="", wait=True)
     def function1() -> str:
         sleep(0.1)
         return "Hello function 1"
 
-    @rediscache.cache(1, 2)
+    @rediscache.cache(1, 2, default="")
     def function2() -> str:
         sleep(0.1)
         return "Hello function 2"
