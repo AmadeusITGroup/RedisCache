@@ -40,10 +40,10 @@ import logging
 import os
 import threading
 from time import sleep
-from typing import Any, Callable, Dict, List, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, cast, Dict, List, Optional, ParamSpec, TypeVar
 
-import redis
 from executiontime import printexecutiontime, YELLOW, RED
+import redis
 
 PREFIX = "."
 REFRESH = "Refresh"  # Number of times the cached function was actually called.
@@ -56,7 +56,7 @@ DEFAULT = "Default"  # Number of times the default value was used because nothin
 STATS = [REFRESH, WAIT, SLEEP, FAILED, MISSED, SUCCESS, DEFAULT]
 
 P = ParamSpec("P")
-T = TypeVar("T")
+T = TypeVar("T", str, bytes)
 
 
 class RedisCache:
@@ -122,20 +122,14 @@ class RedisCache:
         self,
         refresh: int,
         expire: int,
+        default: T,
         retry: Optional[int] = None,
-        default: Any = "",
         wait: bool = False,
-        serializer: Optional[Callable[..., Any]] = None,
-        deserializer: Optional[Callable[..., Any]] = None,
         use_args: Optional[List[int]] = None,
         use_kwargs: Optional[List[str]] = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
-        Full decorator will all possible parameters. Most of the time, you should use a specialized decorator below.
-
-        Specific examples when to use this decorator:
-        - Raw storage of byte string that you do not want to be decoded: use the decode=False.
-        - JSON dumps data that doesn't need to be loaded before it is sent by a REST API: use serializer=dumps but no deserializer.
+        Full decorator will all possible parameters.
         """
 
         logger = logging.getLogger(__name__)
@@ -165,6 +159,7 @@ class RedisCache:
                     """
                     This gets the value provided by the function and stores it in local Redis database
                     """
+                    new_value: Optional[T]
                     try:
                         # Get some stats
                         self.server.incr(REFRESH)
@@ -185,11 +180,8 @@ class RedisCache:
                         self.server.incr(DEFAULT)
                         new_value = default
 
-                    # Serialize the value if requested
-                    if serializer:
-                        new_value = serializer(new_value)
                     # Store value in cache with expiration time
-                    self.server.set(key, new_value, ex=expire)  # type: ignore
+                    self.server.set(key, new_value, ex=expire)
                     # Set refresh key with refresh time
                     self.server.set(PREFIX + key, 1, ex=refresh)
                     return new_value
@@ -203,13 +195,7 @@ class RedisCache:
 
                 # If the cache is disabled, directly call the function
                 if not self.enabled:
-                    direct_value = function(*args, **kwargs)
-                    # If we have decided to serialize, we always do it to be consistent
-                    if serializer:
-                        direct_value = serializer(direct_value)
-                    if deserializer:
-                        direct_value = deserializer(direct_value)
-                    return direct_value
+                    return function(*args, **kwargs)
 
                 # Lets create a key from the function's name and its parameters values
                 key = self._create_key(name=function.__name__, args=args, use_args=use_args, kwargs=kwargs, use_kwargs=use_kwargs)
@@ -222,7 +208,7 @@ class RedisCache:
 
                 # Get the value from the cache.
                 # If it is not there we will get None.
-                cached_value = self.server.get(key)
+                cached_value = cast(T, self.server.get(key))
 
                 # Time to update stats counters
                 if cached_value is None:
@@ -251,16 +237,16 @@ class RedisCache:
                         # Let's count how many times we wait 1s
                         self.server.incr(SLEEP)
                         sleep(1)
-                        cached_value = self.server.get(key)
+                        cached_value = cast(T, self.server.get(key))
 
                 # If the cache was empty, we have None in the cached_value.
                 if cached_value is None:
                     # We are going to return the default value
                     self.server.incr(DEFAULT)
-                    cached_value = serializer(default) if serializer else default
+                    cached_value = default
 
                 # Return whatever value we have at this point.
-                return deserializer(cached_value) if deserializer else cached_value  # type: ignore
+                return cached_value
 
             # If we want to bypass the cache at runtime, we need a reference to the decorated function
             wrapper.function = function  # type: ignore
@@ -268,45 +254,6 @@ class RedisCache:
             return wrapper
 
         return decorator
-
-    def cache_raw(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """
-        Normal caching of values directly storable in redis: byte string, string, int, float.
-        """
-        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default)
-
-    def cache_raw_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """
-        Same as cache_raw() but will wait for the completion of the cached function if no value is found in redis.
-        """
-        return self.cache(refresh=refresh, expire=expire, retry=retry, default=default, wait=True)
-
-    def cache_json(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """
-        JSON dumps the values to be stored in redis and loads them again when returning them to the caller.
-        """
-        return self.cache(
-            refresh=refresh,
-            expire=expire,
-            retry=retry,
-            default=default,
-            serializer=dumps,
-            deserializer=loads,
-        )
-
-    def cache_json_wait(self, refresh: int, expire: int, retry: Optional[int] = None, default: Any = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """
-        Same as cache_json() but will wait for the completion of the cached function if no value is found in redis.
-        """
-        return self.cache(
-            refresh=refresh,
-            expire=expire,
-            retry=retry,
-            default=default,
-            wait=True,
-            serializer=dumps,
-            deserializer=loads,
-        )
 
     def get_stats(self, delete: bool = False) -> Dict[str, Any]:
         """
