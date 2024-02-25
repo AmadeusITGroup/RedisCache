@@ -31,10 +31,10 @@ executiontime = "^0.3.6"
 pylint = "^3.0.3"
 pytest = "^8.0.1"
 pdbpp = "^0.10.3"
-coverage = "^7.4.2"
 mypy = "^1.8.0"
 safety = "^3.0.1"
 black = "^24.2.0"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]

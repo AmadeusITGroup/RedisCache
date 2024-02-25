@@ -160,10 +160,10 @@ My development environment is handled by Poetry. I use `Python 3.11.7`.
 
 To make sure we use Redis properly, we do not mock it in the unit tess. So you will need a localhost default instance of Redis server without a password. This means that the unit tests are more like integration tests.
 
-The execution of the tests including coverage result can be done with `test.sh`. You can also run just `pytest`:
+The execution of the tests including coverage result is done with `pytest`:
 
 ```bash
-./test.sh
+poetry run pytest --cov=rediscache
 ```
 
 ## CI/CD
