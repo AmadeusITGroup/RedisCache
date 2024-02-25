@@ -87,22 +87,6 @@ See `test_rediscache.py` for more examples.
 
 Note: when you choose to wait for the value, you do not have an absolute guarantee that you will not get the default value. For example if it takes more than the retry time to get an answer from the function, the decorator will give up.
 
-### `cache_raw` decorator helper
-
-No serializer or deserializer. This will only work if the cached function only returns `byte`, `str`, `int` or `float` types. Even `None` will fail.
-
-### `cache_raw_wait` decorator helper
-
-Same as above but waits for the value if not in the cache.
-
-### `cache_json` decorator helper
-
-Serialize the value with `json.dumps()` and deserialize the value with `json.loads()`.
-
-### `cache_json_wait` decorator helper
-
-Same as above but waits for the value if not in the cache.
-
 ### `get_stats(delete=False)`
 
 This will get the stats stored when using the cache. The `delete` option is to reset the counters after read.
@@ -110,6 +94,7 @@ The output is a dictionary with the following keys and values:
 
 - **Refresh**: Number of times the cached function was actually called.
 - **Wait**: Number of times we waited for the result when executing the function.
+- **Sleep**: Number of 1 seconds we waited for the results to be found in the cache.
 - **Failed**: Number of times the cached function raised an exception when called.
 - **Missed**: Number of times the functions result was not found in the cache.
 - **Success**: Number of times the function's result was found in the cache.
