@@ -130,6 +130,41 @@ def myfunc():
 print(myfunc.function())
 ```
 
+## The `decorate` decorator
+
+In the `tools` submodule, the `decorate` decorator is a little helper to transform a serializer or deserializer function into a decorator.
+The transformation function is expected to take a single argument of a certain type and transform it into another type.
+For example, a typical serializer would transform a dictionary into a string.
+
+```python
+from json import dumps
+
+from rediscache.tools import decorate
+
+@decorate(dumps)
+def myfunc():
+    return {"toto": 42}
+
+assert isinstance(myfunc(), str)
+```
+
+You may use partial functions if your transformation function requires extra parameters.
+
+```python
+from datetime import date
+from functools import partial
+from json import dumps
+
+from rediscache.tools import decorate
+
+@decorate(partial(dumps, skipkeys=True))
+def func_with_id():
+    """My func_with_id"""
+    return {"name": "Toto", "age": 25, date.today(): "today"}
+
+assert func_with_id() == '{"name": "Toto", "age": 25}'
+```
+
 ## Development
 
 ### Poetry
