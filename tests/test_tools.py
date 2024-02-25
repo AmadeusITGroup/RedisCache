@@ -77,7 +77,7 @@ def test_multiple_decorate() -> None:
 
 def test_partial_decorate() -> None:
     """
-    Test using a tranformation function with extra parameters.
+    Test using a transformation function with extra parameters.
     This can be tested alone with:
     pytest -k test_partial_decorate
     """

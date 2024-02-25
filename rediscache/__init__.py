@@ -10,10 +10,10 @@ rediscache is a function decorator that will cache its result in a Redis databas
 
 Parameters:
 - refresh: the number of seconds after which the cached data will be refreshed using the decorated function.
-- expire: the number of seconds after which the cached data will altogether disapear from the Redis database.
+- expire: the number of seconds after which the cached data will altogether disappear from the Redis database.
 - default: the value that will be returned if the data is not found in the cache. It cannot be None.
 It can be bytes, string, int or float.
-- enabled: This is True by default but enables to programmatically disable the cach if required.
+- enabled: This is True by default but enables to programmatically disable the cache if required.
 
 It also reads from the environment:
 - REDIS_SERVICE_HOST: the redis server host name or IP. Default is 'localhost'.
@@ -23,7 +23,7 @@ It also reads from the environment:
 
 Note:
 A key associated to the decorated function is created using the function name and its parameters. This is based
-on the value returned by the repr() function (ie: the __repr__() member) of each paramter. user defined objects
+on the value returned by the repr() function (ie: the __repr__() member) of each parameter. User defined objects
 will have this function return by default a string like this:
 "<amadeusbook.services.EmployeesService object at 0x7f41dedd7128>"
 This will not do as each instance of the object will have a different representation no matter what. The direct
@@ -77,7 +77,7 @@ class RedisCache:
     ):
         self.enabled = enabled
         if self.enabled:
-            # If environment variables are set for redis server, they superseed the default values.
+            # If environment variables are set for redis server, they supersede the default values.
             # But if provided at the construction, it has priority.
             if not host:
                 host = os.environ.get("REDIS_SERVICE_HOST", "localhost")
@@ -134,7 +134,7 @@ class RedisCache:
         use_kwargs: Optional[List[str]] = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
-        Full decorator will all possible parameters. Most of the time, you should use a specialzed decorator below.
+        Full decorator will all possible parameters. Most of the time, you should use a specialized decorator below.
 
         Specific examples when to use this decorator:
         - Raw storage of byte string that you do not want to be decoded: use the decode=False.
@@ -164,7 +164,7 @@ class RedisCache:
                     color=RED,
                     output=logger.info,
                 )
-                def refreshvalue(key: str) -> T:
+                def refresh_value(key: str) -> T:
                     """
                     This gets the value provided by the function and stores it in local Redis database
                     """
@@ -197,11 +197,11 @@ class RedisCache:
                     self.server.set(PREFIX + key, 1, ex=refresh)
                     return new_value
 
-                def refreshvalueinthread(key: str) -> None:
+                def refresh_value_in_thread(key: str) -> None:
                     """
                     Run the refresh value in a separate thread
                     """
-                    thread = threading.Thread(target=refreshvalue, args=(key,))
+                    thread = threading.Thread(target=refresh_value, args=(key,))
                     thread.start()
 
                 # If the cache is disabled, directly call the function
@@ -239,12 +239,12 @@ class RedisCache:
                     # If we found a value in the cash, we will not wait for the refresh
                     if cached_value or not wait:
                         # We just update the cache in another thread.
-                        refreshvalueinthread(key)
+                        refresh_value_in_thread(key)
                     else:
                         # Here we will wait, let's count it
                         self.server.incr(WAIT)
                         # We update the cash and return the value.
-                        cached_value = refreshvalue(key)
+                        cached_value = refresh_value(key)
 
                 # We may still have decided to wait but another process is already getting the cache updated.
                 if cached_value is None and wait:

@@ -178,19 +178,19 @@ def test_fail() -> None:
     default = "Default"
 
     @rediscache.cache_raw(1, 2, default=default)
-    def my_failling_hello(name: str) -> str:
+    def my_failing_hello(name: str) -> str:
         if not name:
             raise ValueError("Invalid name")
         return f"Hello {name}!"
 
     # Store value in the cache
-    hello = my_failling_hello("")
+    hello = my_failing_hello("")
     # Make sure we have not got it yet
     assert hello == default
     # Wait for value to be in the cache
     sleep(1.1)
     # Do we get a value from the cache?
-    hello = my_failling_hello("")
+    hello = my_failing_hello("")
     # Only the default value is in the cache because the function failed
     assert hello == default
 
@@ -453,7 +453,7 @@ def test_bypass() -> None:
     assert utcnow.function() != now  # type: ignore
 
 
-# This test should run first, so it needs the be the first alphabatically.
+# This test should run first, so it needs the be the first alphabetically.
 def test_get_stats() -> None:
     """
     This can be tested alone with:

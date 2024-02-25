@@ -1,14 +1,33 @@
 {
-    "files.watcherExclude": {
-        "**/venv/**": true
-    },
-    "files.trimTrailingWhitespace": true,
-    "python.testing.pytestEnabled": true,
-    "editor.formatOnSave": true,
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "black-formatter.args": [
-        "--line-length=160"
-    ]
+  "files.watcherExclude": {
+    "**/venv/**": true
+  },
+  "files.trimTrailingWhitespace": true,
+  "python.testing.pytestEnabled": true,
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "black-formatter.args": ["--line-length=160"],
+  "cSpell.words": [
+    "amadeusbook",
+    "autouse",
+    "chouchou",
+    "choux",
+    "executiontime",
+    "fifi",
+    "functools",
+    "GETDEL",
+    "hiboux",
+    "isinstance",
+    "kwargs",
+    "loulou",
+    "myfunc",
+    "printexecutiontime",
+    "PYPI",
+    "pytest",
+    "rediscache",
+    "riri",
+    "skipkeys"
+  ]
 }

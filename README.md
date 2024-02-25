@@ -12,9 +12,9 @@ There are already quite a few Python decorators to cache functions in a Redis da
 - [redis-simple-cache-py3](https://pypi.org/project/redis-simple-cache-py3/)
 - and more ...
 
-But none I could find allows to set two expiration times as we do it here. The first given time is how long before we should update the value stored in the cache. The second given time, longer of course, is how long the data stored in the cache is still good enough to be sent back to the caller. The refreshing of the cache is only done when the function is called. And by default it is done asynchronously, so the caller doesn't have to wait. When the data in the cache becomes too old, it disapear automatically.
+But none I could find allows to set two expiration times as we do it here. The first given time is how long before we should update the value stored in the cache. The second given time, longer of course, is how long the data stored in the cache is still good enough to be sent back to the caller. The refreshing of the cache is only done when the function is called. And by default it is done asynchronously, so the caller doesn't have to wait. When the data in the cache becomes too old, it disappear automatically.
 
-This is a great caching mechanism for functions that will give a consistent output according to their parameters and at a given time. A purelly random function should not be cached. And a function that is independent of the time should be cached with a different mechanism like the LRU cache in the [functools](https://docs.python.org/3/library/functools.html) standard module.
+This is a great caching mechanism for functions that will give a consistent output according to their parameters and at a given time. A purely random function should not be cached. And a function that is independent of the time should be cached with a different mechanism like the LRU cache in the [functools](https://docs.python.org/3/library/functools.html) standard module.
 
 ## Installation
 
@@ -45,7 +45,7 @@ All the parameters for the `RedisCache` constructor are optional. Their default 
 - db: Database number in the Redis server. [`0`]
 - password: Password required to read and write on the Redis server. [`None`]
 - decode: Decode the data stored in the cache as byte string. For example, it should not be done if you actually want to cache byte strings. [`True`]
-- enabled: When False it allows to programatically disable the cache. It can be usefull for unit tests. [`True`]
+- enabled: When False it allows to programmatically disable the cache. It can be useful for unit tests. [`True`]
 
 ### Environment variables
 
@@ -70,7 +70,7 @@ This is the main decorator. All the parameters are available. The mandatory ones
 - serializer: The only type of data that can be stored directly in the Redis database are `byte`, `str`, `int` and `float`. Any other will have to be serialized with the function provided here. [`None`]
 - deserializer: If the value was serialized to be stored in the cache, it needs to deserialized when it is retrieved. [`None`]
 - use_args: This is the list of positional parameters (a list of integers) to be taken into account to generate the key that will be used in Redis. If `None`, they will all be used. [`None`]
-- use_kwargs: This is the list of named paramters (a list of names) to be taken into account to generate the key that will be used in Redis. If `None`, they will all be used. [`None`]
+- use_kwargs: This is the list of named parameters (a list of names) to be taken into account to generate the key that will be used in Redis. If `None`, they will all be used. [`None`]
 
 Example:
 
@@ -97,7 +97,7 @@ Same as above but waits for the value if not in the cache.
 
 ### `cache_json` decorator helper
 
-Serialize the value with `json.dumps()` and desiralize the value with `json.loads()`.
+Serialize the value with `json.dumps()` and deserialize the value with `json.loads()`.
 
 ### `cache_json_wait` decorator helper
 
@@ -173,7 +173,7 @@ My development environment is handled by Poetry. I use `Python 3.11.7`.
 
 ### Testing
 
-To make sure we use Redis properly, we do not mock it in the unit tess. So you will need a localhost default instance of Redis server without a password. This means that the unit tests are more like integrtion tests.
+To make sure we use Redis properly, we do not mock it in the unit tess. So you will need a localhost default instance of Redis server without a password. This means that the unit tests are more like integration tests.
 
 The execution of the tests including coverage result can be done with `test.sh`. You can also run just `pytest`:
 
@@ -190,7 +190,7 @@ We use the GitHub workflow to check each new commit. See `.github/workflows/pyth
 We get help from re-usable actions. Here is the [Marketplace](https://github.com/marketplace?type=actions).
 
 - [Checkout](https://github.com/marketplace/actions/checkout)
-- [Install Poery Action](https://github.com/marketplace/actions/install-poetry-action)
+- [Install Poetry Action](https://github.com/marketplace/actions/install-poetry-action)
 - [Setup Python](https://github.com/marketplace/actions/setup-python)
 
 ### Publish to PyPI
