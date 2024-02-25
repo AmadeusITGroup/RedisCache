@@ -18,7 +18,7 @@ This is a great caching mechanism for functions that will give a consistent outp
 
 ## Installation
 
-Simply install the PyPi package:
+Simply install the PyPi package [rediscache](https://pypi.org/project/rediscache/):
 
 ```bash
 pip install rediscache
