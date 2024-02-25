@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rediscache"
-version = "0.3.2"
+version = "0.3.3"
 description = "Redis caching of functions evolving over time"
 authors = ["Pierre Cart-Grandjean <pcart-grandjean@amadeus.com>"]
 license = "MIT"
