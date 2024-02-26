@@ -63,6 +63,18 @@ class CachedHandler(RequestHandler):  # pylint: disable=abstract-method,too-few-
         self.write(long_function(value))
 
 
+class StatsHandler(RequestHandler):  # pylint: disable=abstract-method,too-few-public-methods
+    """
+    Calls the function with the cache.
+    """
+
+    def get(self) -> None:
+        """
+        It's a simple browser request, therefore a GET.
+        """
+        self.write(rediscache.get_stats())
+
+
 def main() -> None:
     """
     Entry point
@@ -72,6 +84,7 @@ def main() -> None:
         [
             (r"/direct/(.+)", DirectHandler),
             (r"/cached/(.+)", CachedHandler),
+            (r"/stats", StatsHandler),
         ],
         debug=True,
     )
