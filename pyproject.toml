@@ -1,3 +1,4 @@
+# For more details on this file see: https://python-poetry.org/docs/pyproject/
 [tool.poetry]
 name = "rediscache"
 version = "1.0.0"
@@ -21,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+packages = [{ include = "rediscache" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -35,10 +37,14 @@ mypy = "^1.8.0"
 safety = "^3.0.1"
 black = "^24.2.0"
 pytest-cov = "^4.1.0"
+tornado = "^6.4"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+webapp = "demo.webapp:main"
 
 [tool.mypy]
 strict = true
