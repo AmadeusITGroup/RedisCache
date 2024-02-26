@@ -181,3 +181,21 @@ We get help from re-usable actions. Here is the [Marketplace](https://github.com
 ### Publish to PyPI
 
 For the moment the publish to PyPI is done manually with the `publish.sh` script. You will need a PyPI API token in `PYPI_API_TOKEN`, stored in a `secrets.sh`.
+
+## Demo application
+
+In the `demo` directory you will find a web application to test `RedisCache`.
+
+```bash
+poetry run webapp
+```
+
+Entry points:
+
+- Call to long function with parameter value `20` and using the cache but waiting for a result: [link](http://localhost:9090/cached/20)
+- Call to long function with parameter value `20` without using the cache: [link](http://localhost:9090/direct/20)
+- Get the stats stored in Redis database: [link](http://localhost:9090/stats)
+
+There is also a `Nginx` configuration file to further test if with a load balancing of workers. It is useful to demonstrate that many workers can share efficiently the same instance of `Redis`.
+
+Finally a `Gatling` configuration file can be used to test the performance.
