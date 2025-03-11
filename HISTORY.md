@@ -1,5 +1,8 @@
 # History
 
+- 1.0.2 - 11/03/2024
+  - Get rid of `safety`
+
 - 1.0.1 - 11/03/2024
   - Update dependencies
   - Start using `pip-audit`
