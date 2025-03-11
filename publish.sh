@@ -23,7 +23,7 @@ if [[ $status != "## main...origin/main" ]]; then
 fi
 
 # If the current version is the latest one available on PyPI, we need to bump it
-pypi_version=$(poetry search rediscache | grep --perl-regexp --only-matching "([0-9]+\.[0-9]+\.[0-9]+)" | tail -n 1)
+pypi_version=$(poetry search --no-cache rediscache | grep --perl-regexp --only-matching "([0-9]+\.[0-9]+\.[0-9]+)" | tail -n 1)
 local_version=$(poetry version --short)
 if [[ "${pypi_version}" == "${local_version}" ]]; then
     poetry version patch
