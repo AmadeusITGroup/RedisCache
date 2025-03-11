@@ -32,6 +32,7 @@
     "printexecutiontime",
     "pylint",
     "PYPI",
+    "pyproject",
     "pytest",
     "rediscache",
     "riri",

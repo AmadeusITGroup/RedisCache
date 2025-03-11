@@ -20,9 +20,9 @@ if [[ $status != "## main...origin/main" ]]; then
 fi
 
 # If the current version is the latest one available on PyPI, we need to bump it
-pypi_version=$(poetry search rediscache | grep -oP "^rediscache\s+\(\K[0-9]+\.[0-9]+\.[0-9]+")
+pypi_version=$(poetry search executiontime | grep --perl-regexp --only-matching "([0-9]+\.[0-9]+\.[0-9]+)" | tail -n 1)
 local_version=$(poetry version --short)
-if [[ $pypi_version == $local_version ]]; then
+if [[ "${pypi_version}" == "${local_version}" ]]; then
     poetry version patch
     local_version=$(poetry version --short)
     git add pyproject.toml
@@ -38,7 +38,7 @@ poetry build
 # Then we publish the project
 if [[ -f "secrets.sh" ]]; then
     . secrets.sh
-    poetry publish --username=__token__ --password=${PYPI_API_TOKEN}
+    poetry publish --username=__token__ "--password=${PYPI_API_TOKEN}"
 else
     echo "No secrets.sh file found"
 fi
