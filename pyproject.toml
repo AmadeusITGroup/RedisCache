@@ -26,18 +26,19 @@ packages = [{ include = "rediscache" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-redis = "^5.0.1"
-executiontime = "^0.3.6"
+redis = "^5.2.1"
+executiontime = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
-pylint = "^3.0.3"
-pytest = "^8.0.1"
+pylint = "^3.3.5"
+pytest = "^8.3.5"
 pdbpp = "^0.10.3"
-mypy = "^1.8.0"
-safety = "^3.0.1"
-black = "^24.2.0"
-pytest-cov = "^4.1.0"
-tornado = "^6.4"
+mypy = "^1.15.0"
+safety = "^3.3.1"
+black = "^25.1.0"
+pytest-cov = "^6.0.0"
+tornado = "^6.4.2"
+pip-audit = "^2.8.0"
 
 [build-system]
 requires = ["poetry-core"]
