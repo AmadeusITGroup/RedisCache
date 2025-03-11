@@ -5,16 +5,16 @@ name: Python package
 
 on:
   push:
-    branches: ["**"]
+    branches: [ "**" ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: [ "3.11", "3.12" ]
 
     # Service containers to run with `build`
     services:
@@ -24,31 +24,29 @@ jobs:
         image: redis
         # Set health checks to wait until redis has started
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
         ports:
-          # Map standard Redis port outside the docker image
-          - 6379:6379
+        # Map standard Redis port outside the docker image
+        - 6379:6379
 
-    steps: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-      - uses: actions/checkout@v4 # https://github.com/actions/checkout
-      - name: Install Poetry
-        uses: snok/install-poetry@v1 # https://github.com/snok/install-poetry
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5 # https://github.com/actions/setup-python
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: poetry install
-      - name: Lint with pylint
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          poetry run pylint -E rediscache
-          # exit-zero treats all errors as warnings
-          poetry run pylint rediscache --exit-zero
-      - name: Test with pytest and coverage
-        run: poetry run pytest --cov=rediscache --cov-fail-under=100
-      - name: Check types with mypy
-        run: poetry run mypy rediscache tests demo
+    steps:
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+    - uses: actions/checkout@v4 # https://github.com/actions/checkout
+    - name: Install Poetry
+      uses: snok/install-poetry@v1 # https://github.com/snok/install-poetry
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5 # https://github.com/actions/setup-python
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: poetry install
+    - name: Lint with pylint
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        poetry run pylint -E rediscache
+        # exit-zero treats all errors as warnings
+        poetry run pylint rediscache --exit-zero
+    - name: Test with pytest and coverage
+      run: poetry run pytest --cov=rediscache --cov-fail-under=100
+    - name: Check types with mypy
+      run: poetry run mypy rediscache tests demo

@@ -36,6 +36,7 @@
     "pytest",
     "rediscache",
     "riri",
-    "skipkeys"
+    "skipkeys",
+    "snok"
   ]
 }
