@@ -419,14 +419,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "executiontime"
-version = "0.4.3"
+version = "0.4.4"
 description = "A simple function decorator to display its execution time on the console or in the logs."
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "executiontime-0.4.3-py3-none-any.whl", hash = "sha256:2acb92f9b73e7925332cd67696666f46b8b3a33f520c04bea199c5d23855acbd"},
-    {file = "executiontime-0.4.3.tar.gz", hash = "sha256:10c2fe5fc51e335388693582f87ec765942c26028bb0539eb08e9eef7303302b"},
+    {file = "executiontime-0.4.4-py3-none-any.whl", hash = "sha256:7b845e80d9c3b3249242336f1adb7cec26e8192528145619266a09e0462f5b70"},
+    {file = "executiontime-0.4.4.tar.gz", hash = "sha256:40ac4bc3e84e03bb0991752c6ab1f15d7ff41a33e6dba277c0594121878b4631"},
 ]
 
 [package.dependencies]
@@ -1241,4 +1241,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "d9e1a7c1e6bd84442463262275d4f491b337c276012cc9197a6e6635b0c1ad49"
+content-hash = "9e1025f875126d402a86fb41aa5ab79b04af5c2b76dc5358a02b7e51dccc7cdc"
