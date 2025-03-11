@@ -1,5 +1,10 @@
 # History
 
+- 1.0.1 - 11/03/2024
+  - Update dependencies
+  - Start using `pip-audit`
+  - Fix the `publish.sh` script
+
 - 1.0.0 - 25/02/2024
   - No more serialization in the cache decorator
   - No need for alternate cache decorator
