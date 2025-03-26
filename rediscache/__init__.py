@@ -63,7 +63,7 @@ class RedisCache:
     Having the decorator provided by a class allows to have some context to improve performances.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
@@ -87,7 +87,7 @@ class RedisCache:
                 password = os.environ.get("REDIS_SERVICE_PASSWORD")
             self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
 
-    def _create_key(
+    def _create_key(  # pylint: disable=too-many-positional-arguments
         self,
         name: str,
         args: Optional[tuple[Any, ...]] = None,
@@ -117,7 +117,7 @@ class RedisCache:
 
         return f"{name}({','.join(values)})"
 
-    def cache(
+    def cache(  # pylint: disable=too-many-positional-arguments
         self,
         refresh: int,
         expire: int,
