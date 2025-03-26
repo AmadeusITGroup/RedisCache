@@ -72,6 +72,16 @@ class RedisCache:
         decode: bool = True,
         enabled: bool = True,
     ):
+        """
+        Provide configuration parameter to a RedisCache instance.
+
+        Args:
+            host: The host of the Redis server instance to be used.
+            port: The port the Redis server listens to.
+            db: The name of the database to be used if not default.
+            decode: If true, decode the data stored in the cache as byte string.
+            enabled: When False it allows to programmatically disable the cache.
+        """
         self.enabled = enabled
         if self.enabled:
             # If environment variables are set for redis server, they supersede the default values.
@@ -128,7 +138,19 @@ class RedisCache:
         use_kwargs: Optional[List[str]] = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
-        Full decorator will all possible parameters.
+        Full decorator with all possible parameters.
+
+        Args:
+            refresh: The amount of seconds before it would be a good idea to refresh the cached value.
+            expire: How many seconds that the value in the cache is still considered good enough to be sent back to the caller.
+            default: If we do not have the value in the cache and we do not want to wait, what shall we send back to the caller?
+                It has to be serializable because it will also be stored in the cache.
+            retry: While a value is being refreshed, we want to avoid to refresh it in parallel.
+                But if it is taking too long, after the number of seconds provided here, we may want to try our luck again.
+                If not specified, we will take the `refresh` value.
+            wait: If the value is not in the cache, do we wait for the return of the function?
+            use_args: This is the list of positional parameters (a list of integers) to be taken into account to generate the key that will be used in Redis.
+            use_kwargs: This is the list of named parameters (a list of names) to be taken into account to generate the key that will be used in Redis.
         """
 
         logger = logging.getLogger(__name__)
@@ -253,6 +275,12 @@ class RedisCache:
         If delete is set to True we delete the stats from Redis after read.
         From Redis 6.2, it is possible to GETDEL, making sure that we do not lose some data between
         the 'get' and the 'delete'. But it is not available in the Redis (v3.5.3) python interface yet.
+
+        Args:
+            delete: Reset the counters after read.
+
+        Returns:
+            dict: Dictionary of all the counters and their value.
         """
         stats = {stat: self.server.get(stat) for stat in STATS}
         if delete:
