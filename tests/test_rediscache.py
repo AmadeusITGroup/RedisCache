@@ -15,7 +15,7 @@ Start with coverage
 coverage run --source=rediscache --module pytest
 coverage report --show-missing
 """
-from datetime import datetime
+from datetime import datetime, UTC
 from json import dumps, loads
 from threading import Thread
 from time import sleep
@@ -131,7 +131,7 @@ def test_refresh() -> None:
         Each call will get a different result.
         """
         sleep(0.2)
-        return f"Hello {name}! {datetime.utcnow()}"
+        return f"Hello {name}! {datetime.now(tz=UTC)}"
 
     # Ask value to go in cache
     hello = my_slow_hello("tata")
@@ -429,7 +429,7 @@ def test_bypass() -> None:
     @rediscache.cache(1, 2, default="0.0")
     @decorate(str)
     def utcnow() -> float:
-        return datetime.utcnow().timestamp()
+        return datetime.now(tz=UTC).timestamp()
 
     # Call the function, fill in the cache
     utcnow()
