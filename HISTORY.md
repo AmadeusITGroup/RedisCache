@@ -1,5 +1,15 @@
 # History
 
+- 1.0.5 - 26/03/2025
+  - Add a `py.typed` file to indicate mypy that RedisCache supports type checking
+
+- 1.0.4 - 26/03/2025
+  - Poetry update
+  - Remove unused code
+  - Google style comment of arguments of functions
+  - Add coverage script
+  - No more datetime.utcnow()
+
 - 1.0.3 - 11/03/2024
   - Upgrade rediscache to not use UTC
 
