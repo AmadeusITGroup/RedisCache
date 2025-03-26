@@ -5,7 +5,7 @@ Usage:
 poetry run webapp --help
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from logging import info
 import sys
 from time import sleep
@@ -36,7 +36,7 @@ def long_function(value: str) -> str:
         for i in range(1, 2001):
             fact = fact * i
     # Return a string that depends on 'value'
-    return f"{value} at {datetime.utcnow()}: \n{fact}"
+    return f"{value} at {datetime.now(tz=UTC)}: \n{fact}"
 
 
 class DirectHandler(RequestHandler):  # pylint: disable=abstract-method,too-few-public-methods

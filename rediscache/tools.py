@@ -17,6 +17,10 @@ def decorate(transform: Callable[[InT], OutT]) -> Callable[[Callable[P, InT]], C
     It is especially meant to be used to serialize the output of a function to be cached.
     It can also be used to deserialize the cached value, but this should be used with great caution
     since it could be worse than not caching the function at all.
+
+    Args:
+        transform: the function that will take the output of the decorated function and transform it,
+            usually to a new type.
     """
 
     def decorator(function: Callable[P, InT]) -> Callable[P, OutT]:
