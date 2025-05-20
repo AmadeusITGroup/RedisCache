@@ -28,6 +28,12 @@ pip install rediscache
 
 Of course you need a Redis server installed. By default, the decorator will connect to `localhost:6379` with no password, using the database number `0`. This can be changed with parameters given to the `RedisCache` object.
 
+This can be done simply using Docker:
+
+```bash
+docker run --rm --name redis-server -d -p 6379:6379 redis redis-server
+```
+
 ## Usage of the RedisCache class
 
 ### RedisCache class
