@@ -25,7 +25,7 @@ classifiers = [
 packages = [{ include = "rediscache" }]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<4.0"
 redis = "^6.1.0"
 executiontime = "0.4.4"
 
