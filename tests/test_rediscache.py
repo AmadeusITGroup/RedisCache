@@ -19,7 +19,7 @@ from datetime import datetime, UTC
 from json import dumps, loads
 from threading import Thread
 from time import sleep
-from typing import Callable, Dict, Generator, TypeVar
+from typing import Callable, Dict, Generator, TypeVar, List
 
 import pytest
 from redis import Redis, StrictRedis
@@ -376,6 +376,56 @@ def test_wait_thread() -> None:
     # Now we still wait for the value
     hello = my_hello_wait(name)
     assert hello == f"hello {name}!"
+
+
+def test_multi_threads() -> None:
+    """
+    Test RedisCache when multiple threads us it in parallel.
+    """
+    rediscache = RedisCache()
+
+    @rediscache.cache(1, 2, default="")
+    def my_hello_wait(name: str) -> str:
+        sleep(0.01)
+        return f"hello {name}!"
+
+    name = "bob"
+
+    # Create 100 threads
+    threads: List[Thread] = []
+    for _ in range(10):
+        threads.append(Thread(target=my_hello_wait, args=(name,)))
+
+    # Start the threads
+    for thread in threads:
+        thread.start()
+
+    # Make sure they all finished
+    sleep(1.5)
+
+    # Check that only call to the function was made
+    stats = rediscache.get_stats()
+    assert stats["Missed"] == "10", "The cache was empty so they all missed"
+    assert stats["Refresh"] == "1", "One of them initiated the refresh"
+    assert stats["Default"] == "10", "All returned the default value without waiting"
+
+    # Create 100 new threads
+    threads = []
+    for _ in range(10):
+        threads.append(Thread(target=my_hello_wait, args=(name,)))
+
+    # Start the new threads
+    for thread in threads:
+        thread.start()
+
+    # Make sure they all finished
+    sleep(1)
+
+    # Check that only another call to the function was made
+    stats = rediscache.get_stats()
+    print(stats)
+    assert stats["Success"] == "10", "We had a cache value that all threads used"
+    assert stats["Refresh"] == "2", "One more initiated the refresh"
 
 
 def test_no_decode() -> None:
