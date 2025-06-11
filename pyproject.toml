@@ -32,7 +32,7 @@ executiontime = "0.4.4"
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.3.5"
 pytest = "^8.3.5"
-pdbpp = "^0.10.3"
+pdbpp = "^0.11.6"
 mypy = "^1.15.0"
 black = "^25.1.0"
 pytest-cov = "^6.0.0"
