@@ -36,7 +36,7 @@ pdbpp = "^0.11.6"
 mypy = "^1.15.0"
 black = "^25.1.0"
 pytest-cov = "^6.0.0"
-tornado = "^6.4.2"
+tornado = "^6.5.1"
 pip-audit = "^2.8.0"
 
 [build-system]
