@@ -196,9 +196,9 @@ poetry run webapp
 
 Entry points:
 
-- Call to long function with parameter value `20` and using the cache but waiting for a result: [link](http://localhost:9090/cached/20)
-- Call to long function with parameter value `20` without using the cache: [link](http://localhost:9090/direct/20)
-- Get the stats stored in Redis database: [link](http://localhost:9090/stats)
+- Call to long function with parameter value `20` and using the cache but waiting for a result: [cached 20](http://localhost:9090/cached/20)
+- Call to long function with parameter value `20` without using the cache: [direct 20](http://localhost:9090/direct/20)
+- Get the stats stored in Redis database: [stats](http://localhost:9090/stats)
 
 There is also a `Nginx` configuration file to further test if with a load balancing of workers. It is useful to demonstrate that many workers can share efficiently the same instance of `Redis`.
 

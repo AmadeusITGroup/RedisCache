@@ -50,3 +50,5 @@ jobs:
         run: poetry run pytest --cov=rediscache --cov-fail-under=100
       - name: Check types with mypy
         run: poetry run mypy rediscache tests demo
+      - name: Audit dependencies
+        run: poetry run pip-audit
