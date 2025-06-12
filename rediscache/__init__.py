@@ -106,7 +106,17 @@ class RedisCache:
         use_kwargs: Optional[List[str]] = None,
     ) -> str:
         """
-        Create a key from the function's name and its parameters values
+        Create a key from the function's name and its parameters values.
+
+        Args:
+            name: The name of the function.
+            args: The list of positional parameters passed to the function.
+            use_args: If not all, the indexes of the positional parameters to be used.
+            kwargs: The dictionary of named parameters passed to the function.
+            use_kwargs: If not all, the names of the parameters to be used.
+
+        Returns:
+            str: The key to be used in the Redis database.
         """
         values = []
         if args:
