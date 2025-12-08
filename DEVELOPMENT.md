@@ -22,3 +22,23 @@ Deployment procedure:
 - Create the new version number with a `poetry version` command see `poetry version --help` for details. To simply go to the next patch version, use `poetry version patch`. This is also the default behavior.
 - Make sure all you changes are pushed to the GitHub repository, merged to `main` and that you are also locally in branch `main`.
 - Run the `./publish.sh` script.
+
+## Local Redis server instance
+
+The unit tests and the demo webapp requires a local instance of redis installed:
+
+```bash
+sudo apt install redis
+```
+
+You can check it is up and running:
+
+```bash
+redis-cli PING
+```
+
+If the instance it is not started automatically:
+
+```bash
+sudo systemctl start redis-server
+```
