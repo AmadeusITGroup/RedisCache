@@ -1,7 +1,7 @@
 # For more details on this file see: https://python-poetry.org/docs/pyproject/
 [tool.poetry]
 name = "rediscache"
-version = "1.1.4"
+version = "1.2.0"
 description = "Redis caching of functions evolving over time"
 authors = ["Pierre Cart-Grandjean <pcart-grandjean@amadeus.com>"]
 license = "MIT"
