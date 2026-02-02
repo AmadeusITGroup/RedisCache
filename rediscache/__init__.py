@@ -37,9 +37,10 @@ TODO:
 from functools import wraps
 import logging
 import os
+import ssl
 import threading
 from time import sleep
-from typing import Any, Callable, cast, Dict, List, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, cast, Dict, List, Optional, ParamSpec, TypeVar, Union
 
 from executiontime import printexecutiontime, YELLOW, RED
 import redis
@@ -71,6 +72,9 @@ class RedisCache:
         password: Optional[str] = None,
         decode: bool = True,
         enabled: bool = True,
+        ssl: bool = False, 
+        ssl_context: Optional[ssl.SSLContext] = None,
+        server: Optional[Union[redis.Redis, redis.StrictRedis]] = None
     ):
         """
         Provide configuration parameter to a RedisCache instance.
@@ -81,21 +85,26 @@ class RedisCache:
             db: The name of the database to be used if not default.
             decode: If true, decode the data stored in the cache as byte string.
             enabled: When False it allows to programmatically disable the cache.
+            ssl: Set True to enable SSL/TLS for secure connections to the Redis server. Defaults to False.
+            ssl_context: Optional ssl.SSLContext for custom TLS settings like certificates or ciphers. Defaults to None.
+            server: An existing redis.Redis or StrictRedis instance to reuse instead of creating a new connection. Defaults to None.
         """
         self.enabled = enabled
-        if self.enabled:
+        if server is not None:
+            self.server = server
+        elif self.enabled:
             # If environment variables are set for redis server, they supersede the default values.
             # But if provided at the construction, it has priority.
             if not host:
                 host = os.environ.get("REDIS_SERVICE_HOST", "localhost")
             if not port:
                 port = int(os.environ.get("REDIS_SERVICE_PORT", 6379))
-            if not db:
+            if db is None:
                 db = int(os.environ.get("REDIS_SERVICE_DATABASE", 0))
             if not password:
                 # If password is None, it is ignored.
                 password = os.environ.get("REDIS_SERVICE_PASSWORD")
-            self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
+            self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode, ssl=ssl, ssl_context=ssl_context)
 
     def _create_key(  # pylint: disable=too-many-positional-arguments
         self,
