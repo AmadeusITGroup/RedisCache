@@ -438,14 +438,14 @@ profile = ["gprof2dot (>=2022.7.29)"]
 
 [[package]]
 name = "executiontime"
-version = "0.4.4"
+version = "0.4.5"
 description = "A simple function decorator to display its execution time on the console or in the logs."
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "executiontime-0.4.4-py3-none-any.whl", hash = "sha256:7b845e80d9c3b3249242336f1adb7cec26e8192528145619266a09e0462f5b70"},
-    {file = "executiontime-0.4.4.tar.gz", hash = "sha256:40ac4bc3e84e03bb0991752c6ab1f15d7ff41a33e6dba277c0594121878b4631"},
+    {file = "executiontime-0.4.5-py3-none-any.whl", hash = "sha256:8d460c264b54e629357bd1ae115dbe345e332e79972465e882529406e6591d29"},
+    {file = "executiontime-0.4.5.tar.gz", hash = "sha256:2f4fc9fcefca4716466911c56a45ddbba32b49cdf79f1003671824a417faf320"},
 ]
 
 [package.dependencies]
@@ -1415,4 +1415,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "a4884c3f658c135ea5aba025111382a52b51b608241ea581472f3711a34ee493"
+content-hash = "c5c071e5f09d48d99e267085f511223830c2e60fe09c5436cf4c8b0bdf7437bd"
