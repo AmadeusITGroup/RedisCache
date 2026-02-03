@@ -20,7 +20,7 @@ Deployment procedure:
 
 - Create a `./secrets.sh` that will export the `PYPI_API_TOKEN` environment variable with your Pypi API token that is allowed to deploy a new version of RedisCache.
 - Create the new version number with a `poetry version` command see `poetry version --help` for details. To simply go to the next patch version, use `poetry version patch`. This is also the default behavior.
-- Make sure all you changes are pushed to the GitHub repository, merged to `main` and that you are also locally in branch `main`.
+- Make sure all you changes are pushed to the GitHub repository, merged to `main` and that you are also locally in branch `main`. It is not possible to push to `main`. You will have to use a pull request.
 - Run the `./publish.sh` script.
 
 ## Local Redis server instance
