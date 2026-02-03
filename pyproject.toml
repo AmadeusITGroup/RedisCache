@@ -17,9 +17,10 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 packages = [{ include = "rediscache" }]
@@ -27,7 +28,7 @@ packages = [{ include = "rediscache" }]
 [tool.poetry.dependencies]
 python = "^3.11"
 redis = "^7.1.0"
-executiontime = "0.4.4"
+executiontime = "^0.4.4"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^4.0.4"
