@@ -19,7 +19,7 @@ from datetime import datetime, UTC
 from json import dumps, loads
 from threading import Thread
 from time import sleep
-from typing import Callable, Dict, Generator, TypeVar, List
+from typing import Any, Callable, Dict, Generator, TypeVar, List
 
 import pytest
 from redis import Redis, StrictRedis
@@ -70,7 +70,7 @@ def test__create_key() -> None:
         (("toto", "titi", "tata"), None, ["'toto'", "'titi'", "'tata'"]),
     ],
 )
-def test__extract_args_values(args, use_args, expected) -> None:
+def test__extract_args_values(args: tuple[Any, ...], use_args: list[int] | None, expected: list[str]) -> None:
     """
     Test the internal function to extract the values of the arguments.
     """
@@ -91,7 +91,7 @@ def test__extract_args_values(args, use_args, expected) -> None:
         ({"riri": 1, "fifi": 2}, None, ["'1'", "'2'"]),
     ],
 )
-def test__extract_kwargs_values(kwargs, use_kwargs, expected) -> None:
+def test__extract_kwargs_values(kwargs: dict[str, Any], use_kwargs: list[str] | None, expected: list[str]) -> None:
     """
     Test the internal function to extract the values of the keyword arguments.
     """
