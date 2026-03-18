@@ -19,7 +19,7 @@ from datetime import datetime, UTC
 from json import dumps, loads
 from threading import Thread
 from time import sleep
-from typing import Callable, Dict, Generator, TypeVar, List
+from typing import Any, Callable, Dict, Generator, TypeVar, List
 
 import pytest
 from redis import Redis, StrictRedis
@@ -40,8 +40,16 @@ def fixture_flushdb() -> Generator[Redis, None, None]:
     server.flushdb()
     yield server
 
-
-def test_create_key() -> None:
+@pytest.mark.parametrize(
+    "args, use_args, kwargs, use_kwargs, expected",
+    [
+        (("toto",), None, None, None, "my_function('toto')"),
+        (("toto", "titi"), [1], None, None, "my_function('titi')"),
+        (("toto", "titi"), [1], {"riri": 1, "fifi": 2}, None, "my_function('titi','1','2')"),
+        (("toto", "titi"), [1], {"riri": 1, "fifi": 2}, ["riri"], "my_function('titi','1')"),
+    ],
+)
+def test__create_key(args: tuple[Any, ...], use_args: list[int] | None, kwargs: dict[str, Any] | None, use_kwargs: list[str] | None, expected: str) -> None:
     """
     Test the internal function to create the key.
     """
@@ -49,17 +57,48 @@ def test_create_key() -> None:
 
     # pylint: disable=protected-access
 
-    key = rediscache._create_key(name="my_function", args=("toto",))
-    assert key == "my_function('toto')"
+    assert rediscache._create_key(name="my_function", args=args, use_args=use_args, kwargs=kwargs, use_kwargs=use_kwargs) == expected
 
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1])
-    assert key == "my_function('titi')"
+@pytest.mark.parametrize(
+    "args, use_args, expected",
+    [
+        (("toto", "titi", "tata"), [2, 0, 4], ["'tata'", "'toto'"]),
+        (("toto", "titi", "tata"), [1], ["'titi'"]),
+        (("toto", "titi", "tata"), [], []),
+        (("toto", "titi", "tata"), None, ["'toto'", "'titi'", "'tata'"]),
+    ],
+)
+def test__extract_args_values(args: tuple[Any, ...], use_args: list[int] | None, expected: list[str]) -> None:
+    """
+    Test the internal function to extract the values of the arguments.
+    """
+    rediscache = RedisCache()
 
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1], kwargs={"riri": 1, "fifi": 2})
-    assert key == "my_function('titi','1','2')"
+    # pylint: disable=protected-access
 
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1], use_kwargs=["riri"], kwargs={"riri": 1, "fifi": 2})
-    assert key == "my_function('titi','1')"
+    values = rediscache._extract_args_values(args=args, use_args=use_args)
+    assert values == expected
+
+
+@pytest.mark.parametrize(
+    "kwargs, use_kwargs, expected",
+    [
+        ({"riri": 1, "fifi": 2}, ["riri"], ["'1'"]),
+        ({"riri": 1, "fifi": 2}, ["fifi"], ["'2'"]),
+        ({"riri": 1, "fifi": 2}, [], []),
+        ({"riri": 1, "fifi": 2}, None, ["'1'", "'2'"]),
+    ],
+)
+def test__extract_kwargs_values(kwargs: dict[str, Any], use_kwargs: list[str] | None, expected: list[str]) -> None:
+    """
+    Test the internal function to extract the values of the keyword arguments.
+    """
+    rediscache = RedisCache()
+
+    # pylint: disable=protected-access
+
+    values = rediscache._extract_kwargs_values(kwargs=kwargs, use_kwargs=use_kwargs)
+    assert values == expected
 
 
 def test_key_in_redis(flushdb: Callable[[], Generator[StrictRedis, None, None]]) -> None:

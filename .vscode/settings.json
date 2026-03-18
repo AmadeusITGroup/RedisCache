@@ -4,6 +4,7 @@
   },
   "files.trimTrailingWhitespace": true,
   "python.testing.pytestEnabled": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
   "editor.formatOnSave": true,
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
@@ -39,5 +40,7 @@
     "riri",
     "skipkeys",
     "snok"
-  ]
+  ],
+  "python-envs.defaultEnvManager": "ms-python.python:poetry",
+  "python-envs.defaultPackageManager": "ms-python.python:poetry"
 }
