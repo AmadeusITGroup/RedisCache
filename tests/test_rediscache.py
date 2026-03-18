@@ -41,7 +41,7 @@ def fixture_flushdb() -> Generator[Redis, None, None]:
     yield server
 
 
-def test_create_key() -> None:
+def test__create_key() -> None:
     """
     Test the internal function to create the key.
     """
@@ -64,10 +64,10 @@ def test_create_key() -> None:
 @pytest.mark.parametrize(
     "args, use_args, expected",
     [
-        (("toto", "titi", "tata"), [2, 0, 4], ["tata", "toto"]),
-        (("toto", "titi", "tata"), [1], ["titi"]),
+        (("toto", "titi", "tata"), [2, 0, 4], ["'tata'", "'toto'"]),
+        (("toto", "titi", "tata"), [1], ["'titi'"]),
         (("toto", "titi", "tata"), [], []),
-        (("toto", "titi", "tata"), None, ["toto", "titi", "tata"]),
+        (("toto", "titi", "tata"), None, ["'toto'", "'titi'", "'tata'"]),
     ],
 )
 def test__extract_args_values(args, use_args, expected) -> None:
@@ -85,10 +85,10 @@ def test__extract_args_values(args, use_args, expected) -> None:
 @pytest.mark.parametrize(
     "kwargs, use_kwargs, expected",
     [
-        ({"riri": 1, "fifi": 2}, ["riri"], ["1"]),
-        ({"riri": 1, "fifi": 2}, ["fifi"], ["2"]),
+        ({"riri": 1, "fifi": 2}, ["riri"], ["'1'"]),
+        ({"riri": 1, "fifi": 2}, ["fifi"], ["'2'"]),
         ({"riri": 1, "fifi": 2}, [], []),
-        ({"riri": 1, "fifi": 2}, None, ["1", "2"]),
+        ({"riri": 1, "fifi": 2}, None, ["'1'", "'2'"]),
     ],
 )
 def test__extract_kwargs_values(kwargs, use_kwargs, expected) -> None:

@@ -100,14 +100,14 @@ class RedisCache:
     def _extract_args_values(self, args: tuple[Any, ...], use_args: list[int] | None) -> list[str]:
         """Extract and format positional argument values."""
         if use_args is not None:
-            return [f"{args[pos]}" for pos in use_args if pos < len(args)]
-        return [f"{value}" for value in args]
+            return [f"'{args[pos]}'" for pos in use_args if pos < len(args)]
+        return [f"'{value}'" for value in args]
 
     def _extract_kwargs_values(self, kwargs: dict[str, Any], use_kwargs: list[str] | None) -> list[str]:
         """Extract and format named argument values."""
         if use_kwargs is not None:
-            return [f"{kwargs[key]}" for key in use_kwargs if key in kwargs]
-        return [f"{value}" for value in kwargs.values()]
+            return [f"'{kwargs[key]}'" for key in use_kwargs if key in kwargs]
+        return [f"'{value}'" for value in kwargs.values()]
 
     def _create_key(  # pylint: disable=too-many-positional-arguments
         self,
@@ -135,7 +135,7 @@ class RedisCache:
             values.extend(self._extract_args_values(args, use_args))
         if kwargs:
             values.extend(self._extract_kwargs_values(kwargs, use_kwargs))
-        return f"{name}({','.join(f"'{value}'" for value in values)})"
+        return f"{name}({','.join(values)})"
 
     def cache(  # pylint: disable=too-many-positional-arguments
         self,
