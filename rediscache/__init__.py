@@ -39,7 +39,7 @@ import logging
 import os
 import threading
 from time import sleep
-from typing import Any, Callable, cast, Dict, List, Optional, ParamSpec, TypeVar
+from typing import Any, Callable, cast, ParamSpec, TypeVar
 
 from executiontime import printexecutiontime, YELLOW, RED
 import redis
@@ -65,10 +65,10 @@ class RedisCache:
 
     def __init__(  # pylint: disable=too-many-positional-arguments
         self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        db: Optional[int] = None,
-        password: Optional[str] = None,
+        host: str | None = None,
+        port: int | None = None,
+        db: int | None = None,
+        password: str | None = None,
         decode: bool = True,
         enabled: bool = True,
     ):
@@ -97,13 +97,25 @@ class RedisCache:
                 password = os.environ.get("REDIS_SERVICE_PASSWORD")
             self.server = redis.StrictRedis(host=host, port=port, db=db, password=password, decode_responses=decode)
 
+    def _extract_args_values(self, args: tuple[Any, ...], use_args: list[int] | None) -> list[str]:
+        """Extract and format positional argument values."""
+        if use_args is not None:
+            return [f"{args[pos]}" for pos in use_args if pos < len(args)]
+        return [f"{value}" for value in args]
+
+    def _extract_kwargs_values(self, kwargs: dict[str, Any], use_kwargs: list[str] | None) -> list[str]:
+        """Extract and format named argument values."""
+        if use_kwargs is not None:
+            return [f"{kwargs[key]}" for key in use_kwargs if key in kwargs]
+        return [f"{value}" for value in kwargs.values()]
+
     def _create_key(  # pylint: disable=too-many-positional-arguments
         self,
         name: str,
-        args: Optional[tuple[Any, ...]] = None,
-        use_args: Optional[List[int]] = None,
-        kwargs: Optional[Dict[str, Any]] = None,
-        use_kwargs: Optional[List[str]] = None,
+        args: tuple[Any, ...] | None = None,
+        use_args: list[int] | None = None,
+        kwargs: dict[str, Any] | None = None,
+        use_kwargs: list[str] | None = None,
     ) -> str:
         """
         Create a key from the function's name and its parameters values.
@@ -120,32 +132,20 @@ class RedisCache:
         """
         values = []
         if args:
-            if use_args:
-                for position, value in enumerate(args):
-                    if position in use_args:
-                        values.append(f"'{value}'")
-            else:
-                values.extend(f"'{value}'" for value in args)
-
+            values.extend(self._extract_args_values(args, use_args))
         if kwargs:
-            if use_kwargs:
-                for key, value in kwargs.items():
-                    if key in use_kwargs:
-                        values.append(f"'{value}'")
-            else:
-                values.extend(f"'{value}'" for value in kwargs.values())
-
-        return f"{name}({','.join(values)})"
+            values.extend(self._extract_kwargs_values(kwargs, use_kwargs))
+        return f"{name}({','.join(f"'{value}'" for value in values)})"
 
     def cache(  # pylint: disable=too-many-positional-arguments
         self,
         refresh: int,
         expire: int,
         default: T,
-        retry: Optional[int] = None,
+        retry: int | None = None,
         wait: bool = False,
-        use_args: Optional[List[int]] = None,
-        use_kwargs: Optional[List[str]] = None,
+        use_args: list[int] | None = None,
+        use_kwargs: list[str] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """
         Full decorator with all possible parameters.
@@ -279,7 +279,7 @@ class RedisCache:
 
         return decorator
 
-    def get_stats(self, delete: bool = False) -> Dict[str, Any]:
+    def get_stats(self, delete: bool = False) -> dict[str, Any]:
         """
         Get the stats stored by RedisCache. See the list and definition at the top of this file.
         If delete is set to True we delete the stats from Redis after read.

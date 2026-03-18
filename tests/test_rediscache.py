@@ -61,6 +61,47 @@ def test_create_key() -> None:
     key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1], use_kwargs=["riri"], kwargs={"riri": 1, "fifi": 2})
     assert key == "my_function('titi','1')"
 
+@pytest.mark.parametrize(
+    "args, use_args, expected",
+    [
+        (("toto", "titi", "tata"), [2, 0, 4], ["tata", "toto"]),
+        (("toto", "titi", "tata"), [1], ["titi"]),
+        (("toto", "titi", "tata"), [], []),
+        (("toto", "titi", "tata"), None, ["toto", "titi", "tata"]),
+    ],
+)
+def test__extract_args_values(args, use_args, expected) -> None:
+    """
+    Test the internal function to extract the values of the arguments.
+    """
+    rediscache = RedisCache()
+
+    # pylint: disable=protected-access
+
+    values = rediscache._extract_args_values(args=args, use_args=use_args)
+    assert values == expected
+
+
+@pytest.mark.parametrize(
+    "kwargs, use_kwargs, expected",
+    [
+        ({"riri": 1, "fifi": 2}, ["riri"], ["1"]),
+        ({"riri": 1, "fifi": 2}, ["fifi"], ["2"]),
+        ({"riri": 1, "fifi": 2}, [], []),
+        ({"riri": 1, "fifi": 2}, None, ["1", "2"]),
+    ],
+)
+def test__extract_kwargs_values(kwargs, use_kwargs, expected) -> None:
+    """
+    Test the internal function to extract the values of the keyword arguments.
+    """
+    rediscache = RedisCache()
+
+    # pylint: disable=protected-access
+
+    values = rediscache._extract_kwargs_values(kwargs=kwargs, use_kwargs=use_kwargs)
+    assert values == expected
+
 
 def test_key_in_redis(flushdb: Callable[[], Generator[StrictRedis, None, None]]) -> None:
     """
