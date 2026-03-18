@@ -40,8 +40,16 @@ def fixture_flushdb() -> Generator[Redis, None, None]:
     server.flushdb()
     yield server
 
-
-def test__create_key() -> None:
+@pytest.mark.parametrize(
+    "args, use_args, kwargs, use_kwargs, expected",
+    [
+        (("toto",), None, None, None, "my_function('toto')"),
+        (("toto", "titi"), [1], None, None, "my_function('titi')"),
+        (("toto", "titi"), [1], {"riri": 1, "fifi": 2}, None, "my_function('titi','1','2')"),
+        (("toto", "titi"), [1], {"riri": 1, "fifi": 2}, ["riri"], "my_function('titi','1')"),
+    ],
+)
+def test__create_key(args: tuple[Any, ...], use_args: list[int] | None, kwargs: dict[str, Any] | None, use_kwargs: list[str] | None, expected: str) -> None:
     """
     Test the internal function to create the key.
     """
@@ -49,17 +57,7 @@ def test__create_key() -> None:
 
     # pylint: disable=protected-access
 
-    key = rediscache._create_key(name="my_function", args=("toto",))
-    assert key == "my_function('toto')"
-
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1])
-    assert key == "my_function('titi')"
-
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1], kwargs={"riri": 1, "fifi": 2})
-    assert key == "my_function('titi','1','2')"
-
-    key = rediscache._create_key(name="my_function", args=("toto", "titi"), use_args=[1], use_kwargs=["riri"], kwargs={"riri": 1, "fifi": 2})
-    assert key == "my_function('titi','1')"
+    assert rediscache._create_key(name="my_function", args=args, use_args=use_args, kwargs=kwargs, use_kwargs=use_kwargs) == expected
 
 @pytest.mark.parametrize(
     "args, use_args, expected",
