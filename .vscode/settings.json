@@ -39,7 +39,8 @@
     "rediscache",
     "riri",
     "skipkeys",
-    "snok"
+    "snok",
+    "utcnow"
   ],
   "python-envs.defaultEnvManager": "ms-python.python:poetry",
   "python-envs.defaultPackageManager": "ms-python.python:poetry"

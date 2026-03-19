@@ -468,14 +468,14 @@ profile = ["gprof2dot (>=2022.7.29)"]
 
 [[package]]
 name = "executiontime"
-version = "0.4.5"
+version = "0.4.6"
 description = "A simple function decorator to display its execution time on the console or in the logs."
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "executiontime-0.4.5-py3-none-any.whl", hash = "sha256:8d460c264b54e629357bd1ae115dbe345e332e79972465e882529406e6591d29"},
-    {file = "executiontime-0.4.5.tar.gz", hash = "sha256:2f4fc9fcefca4716466911c56a45ddbba32b49cdf79f1003671824a417faf320"},
+    {file = "executiontime-0.4.6-py3-none-any.whl", hash = "sha256:2b5cdc19145759814117ea654a821548de450b11058d1649e7783a279af71f2b"},
+    {file = "executiontime-0.4.6.tar.gz", hash = "sha256:3423217b74891eb8aa2cd18292c1ad92c489407c837e1b9a7bda4623ecf64e60"},
 ]
 
 [package.dependencies]
