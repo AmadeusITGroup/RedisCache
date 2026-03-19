@@ -1,5 +1,32 @@
 # History
 
+- 1.2.4 - 19/03/2026
+  - Upgrade executiontime
+
+- 1.2.3 - 18/03/2026
+  - Upgrade dependencies
+
+- 1.2.2 - 3/02/2026
+
+- 1.2.1 - 2/02/2026
+  - Upgrade dependencies
+
+- 1.2.0 - 8/12/2025
+  - Migrate redis from v6 to v7
+
+- 1.1.4 - 8/12/2025
+  - Upgrade Urllib3
+
+- 1.1.3 - 11/06/2025
+  - Upgrade Tornado
+
+- 1.1.2 - 23/05/2025
+
+- 1.1.1 - 22/05/2025
+
+- 1.1.0 - 21/05/2025
+  - Migrate redis from v5 to v6
+
 - 1.0.5 - 26/03/2025
   - Add a `py.typed` file to indicate mypy that RedisCache supports type checking
 
