@@ -9,12 +9,17 @@ if [[ $branch != "main" ]]; then
     echo "You need to be on the main branch to publish"
     exit 1
 fi
-# Check of everything is committed
+
+# Make sure to have the latest version of the main branch
+git pull origin main
+
+# Check if everything is committed
 status=$(git status --porcelain)
 if [[ -n $status ]]; then
     echo "You need to commit everything before publishing"
     exit 1
 fi
+
 # Check if everything is pushed
 status=$(git status -sb)
 if [[ $status != "## main...origin/main" ]]; then
