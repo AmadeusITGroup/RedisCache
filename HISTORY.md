@@ -1,5 +1,11 @@
 # History
 
+- 1.2.6 - 12/10/2026
+  - Poetry update
+
+- 1.2.5 - 23/06/2026
+  - Bump versions of libraries
+
 - 1.2.4 - 19/03/2026
   - Upgrade executiontime
 
